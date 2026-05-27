@@ -265,19 +265,18 @@ const DB         = window.__DB_URL      ?? "";
 const HUB_MEMBER = window.__CURRENT_MEMBER ?? null;
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let members     = [];
-let memberMap   = {};
-let view        = "home";      // "home" | "group" | "meeting" | "actions"
-let groups      = [];
-let meetings    = [];          // all meetings for current group
-let agendaItems = [];          // items for current meeting
-let actionItems = [];          // action items for current meeting
-let allActions  = [];          // all open action items (for actions view)
-let currentGroup   = null;
+let members        = [];
+let memberMap      = {};
+let hubGroups      = [];           // hub-level member groups
+let view           = "home";       // "home" | "series" | "meeting" | "actions"
+let series         = [];           // meeting series list
+let meetings       = [];           // all meetings for current series
+let agendaItems    = [];           // items for current meeting
+let actionItems    = [];           // action items for current meeting
+let allActions     = [];           // all open action items (for actions view)
+let currentSeries  = null;
 let currentMeeting = null;
 let assigneeFilter = "";
-let savingNotes    = false;
-let notesDirty     = false;
 
 // ── DB helper ─────────────────────────────────────────────────────────────────
 async function dbq(sql, params = []) {
@@ -296,25 +295,26 @@ function uuid() { return crypto.randomUUID(); }
 function now()  { return new Date().toISOString(); }
 
 // ── Data loading ──────────────────────────────────────────────────────────────
-async function loadMembers() {
+async function loadContext() {
   if (!CONTEXT) return;
   try {
-    const res = await fetch(`${CONTEXT}?keys=family.members`);
+    const res = await fetch(`${CONTEXT}?keys=family.members,family.groups`);
     const data = await res.json();
-    members  = data["family.members"] ?? [];
+    members   = data["family.members"] ?? [];
     memberMap = Object.fromEntries(members.map(m => [m.id, m]));
+    hubGroups = data["family.groups"] ?? [];
   } catch { /* non-fatal */ }
 }
 
-async function loadGroups() {
+async function loadSeries() {
   const { rows } = await dbq(`SELECT * FROM meeting_groups ORDER BY created_at ASC`);
-  groups = rows;
+  series = rows;
 }
 
-async function loadMeetings(groupId) {
+async function loadMeetings(seriesId) {
   const { rows } = await dbq(
     `SELECT * FROM meetings WHERE group_id = $1 ORDER BY created_at DESC`,
-    [groupId]
+    [seriesId]
   );
   meetings = rows;
 }
@@ -330,7 +330,7 @@ async function loadMeetingDetail(meetingId) {
 
 async function loadAllOpenActions() {
   const { rows } = await dbq(
-    `SELECT ai.*, mg.name AS group_name, m.title AS meeting_title, m.scheduled_at
+    `SELECT ai.*, mg.name AS series_name, m.title AS meeting_title, m.scheduled_at
      FROM action_items ai
      LEFT JOIN meetings m ON m.id = ai.meeting_id
      LEFT JOIN meeting_groups mg ON mg.id = m.group_id
@@ -340,25 +340,44 @@ async function loadAllOpenActions() {
   allActions = rows;
 }
 
+// ── Audience helpers ──────────────────────────────────────────────────────────
+function audienceLabel(audience) {
+  if (!audience || audience === "everyone") return "Everyone";
+  if (audience === "adults") return "Adults only";
+  const g = hubGroups.find(hg => hg.id === audience);
+  return g ? g.name : "Group";
+}
+
+function audienceOptions(selected = "everyone") {
+  const base = [
+    `<option value="everyone" ${selected === "everyone" ? "selected" : ""}>Everyone</option>`,
+    `<option value="adults"   ${selected === "adults"   ? "selected" : ""}>Adults only</option>`,
+  ];
+  const groupOpts = hubGroups.map(g =>
+    `<option value="${esc(g.id)}" ${selected === g.id ? "selected" : ""}>${esc(g.name)}</option>`
+  );
+  return [...base, ...groupOpts].join("");
+}
+
 // ── Navigation ────────────────────────────────────────────────────────────────
 async function navigateTo(newView, opts = {}) {
   view = newView;
   if (newView === "home") {
-    currentGroup   = null;
+    currentSeries  = null;
     currentMeeting = null;
-    await loadGroups();
+    await loadSeries();
     renderHome();
-  } else if (newView === "group") {
-    currentGroup   = opts.group;
+  } else if (newView === "series") {
+    currentSeries  = opts.series;
     currentMeeting = null;
-    await loadMeetings(currentGroup.id);
-    renderGroup();
+    await loadMeetings(currentSeries.id);
+    renderSeries();
   } else if (newView === "meeting") {
     currentMeeting = opts.meeting;
     await loadMeetingDetail(currentMeeting.id);
     renderMeeting();
   } else if (newView === "actions") {
-    currentGroup   = null;
+    currentSeries  = null;
     currentMeeting = null;
     await loadAllOpenActions();
     renderActions();
@@ -374,35 +393,35 @@ function renderHome() {
       <h1>📋 Agenda</h1>
       <div class="header-actions">
         <button class="btn btn-ghost btn-sm" id="btn-actions">Action Items</button>
-        ${canCreate ? `<button class="btn btn-primary btn-sm" id="btn-new-group">+ New Group</button>` : ""}
+        ${canCreate ? `<button class="btn btn-primary btn-sm" id="btn-new-series">+ New Series</button>` : ""}
       </div>
     </div>
-    ${groups.length === 0
-      ? `<div class="empty"><p>No meeting groups yet.</p>${canCreate ? `<button class="btn btn-primary" style="margin-top:12px" id="btn-new-group-empty">Create a group</button>` : ""}</div>`
-      : `<div class="list">${groups.map(groupCard).join("")}</div>`
+    ${series.length === 0
+      ? `<div class="empty"><p>No meeting series yet.</p>${canCreate ? `<button class="btn btn-primary" style="margin-top:12px" id="btn-new-series-empty">Create a series</button>` : ""}</div>`
+      : `<div class="list">${series.map(seriesCard).join("")}</div>`
     }
   `;
   document.getElementById("btn-actions")?.addEventListener("click", () => navigateTo("actions"));
-  document.getElementById("btn-new-group")?.addEventListener("click", openNewGroupModal);
-  document.getElementById("btn-new-group-empty")?.addEventListener("click", openNewGroupModal);
-  groups.forEach(g => {
-    document.getElementById(`group-${g.id}`)?.addEventListener("click", () => {
-      navigateTo("group", { group: g });
+  document.getElementById("btn-new-series")?.addEventListener("click", openNewSeriesModal);
+  document.getElementById("btn-new-series-empty")?.addEventListener("click", openNewSeriesModal);
+  series.forEach(s => {
+    document.getElementById(`series-${s.id}`)?.addEventListener("click", () => {
+      navigateTo("series", { series: s });
     });
   });
 }
 
-function groupCard(g) {
+function seriesCard(s) {
   return `
-    <div class="list-item" id="group-${g.id}">
+    <div class="list-item" id="series-${s.id}">
       <div class="list-item-inner">
         <div class="list-item-main">
-          <div class="list-item-title">${esc(g.name)}</div>
-          ${g.description ? `<div class="list-item-sub">${esc(g.description)}</div>` : ""}
-          ${g.recurrence ? `<div class="list-item-sub">Recurs ${g.recurrence}</div>` : ""}
+          <div class="list-item-title">${esc(s.name)}</div>
+          ${s.description ? `<div class="list-item-sub">${esc(s.description)}</div>` : ""}
+          ${s.recurrence ? `<div class="list-item-sub">Recurs ${s.recurrence}</div>` : ""}
         </div>
         <div class="list-item-right">
-          <span class="badge badge-gray">${g.audience === "adults" ? "Adults only" : "Everyone"}</span>
+          <span class="badge badge-gray">${esc(audienceLabel(s.audience))}</span>
           <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         </div>
       </div>
@@ -410,21 +429,21 @@ function groupCard(g) {
   `;
 }
 
-// ── Render: Group ─────────────────────────────────────────────────────────────
-function renderGroup() {
+// ── Render: Series ────────────────────────────────────────────────────────────
+function renderSeries() {
   const canManage = HUB_MEMBER && isAdult(HUB_MEMBER);
   const upcoming  = upcomingMeetings(meetings);
   const past      = pastMeetings(meetings);
   const app = document.getElementById("app");
   app.innerHTML = `
-    <button class="back-btn" id="btn-back">← Back to groups</button>
+    <button class="back-btn" id="btn-back">← Back to series</button>
     <div class="page-header">
-      <h1>${esc(currentGroup.name)}</h1>
+      <h1>${esc(currentSeries.name)}</h1>
       <div class="header-actions">
         ${canManage ? `<button class="btn btn-primary btn-sm" id="btn-schedule">+ Schedule Meeting</button>` : ""}
       </div>
     </div>
-    ${currentGroup.description ? `<p style="color:var(--muted);font-size:.85rem;margin-bottom:14px">${esc(currentGroup.description)}</p>` : ""}
+    ${currentSeries.description ? `<p style="color:var(--muted);font-size:.85rem;margin-bottom:14px">${esc(currentSeries.description)}</p>` : ""}
     ${upcoming.length === 0 && past.length === 0
       ? `<div class="empty">No meetings yet.${canManage ? ` Schedule the first one!` : ""}</div>`
       : `
@@ -449,7 +468,7 @@ function renderGroup() {
 }
 
 function meetingCard(m) {
-  const title = meetingTitle(m, currentGroup);
+  const title = meetingTitle(m, currentSeries);
   const statusClass = `status-${m.status}`;
   const statusLabel = m.status === "in-progress" ? "In Progress" : m.status === "completed" ? "Completed" : "Upcoming";
   const dateStr = m.scheduled_at ? formatDate(m.scheduled_at) : "No date set";
@@ -474,7 +493,7 @@ function renderMeeting() {
   const canManage = HUB_MEMBER && isAdult(HUB_MEMBER);
   const inProgress = currentMeeting.status === "in-progress";
   const isCompleted = currentMeeting.status === "completed";
-  const title = meetingTitle(currentMeeting, currentGroup);
+  const title = meetingTitle(currentMeeting, currentSeries);
   const dateStr = currentMeeting.scheduled_at ? formatDate(currentMeeting.scheduled_at) : "No date set";
   const pending  = pendingItems(agendaItems);
   const discussed = discussedItems(agendaItems);
@@ -492,7 +511,7 @@ function renderMeeting() {
 
   const app = document.getElementById("app");
   app.innerHTML = `
-    <button class="back-btn" id="btn-back">← Back to ${esc(currentGroup?.name ?? "group")}</button>
+    <button class="back-btn" id="btn-back">← Back to ${esc(currentSeries?.name ?? "series")}</button>
     <div class="page-header">
       <div>
         <h1>${esc(title)}</h1>
@@ -546,7 +565,7 @@ function renderMeeting() {
   `;
 
   document.getElementById("btn-back")?.addEventListener("click", () => {
-    if (currentGroup) navigateTo("group", { group: currentGroup });
+    if (currentSeries) navigateTo("series", { series: currentSeries });
     else navigateTo("home");
   });
   document.getElementById("btn-start-meeting")?.addEventListener("click", () => updateMeetingStatus("in-progress"));
@@ -555,7 +574,6 @@ function renderMeeting() {
   document.getElementById("btn-add-action")?.addEventListener("click", () => openAddActionModal());
   document.getElementById("btn-save-notes")?.addEventListener("click", saveNotes);
 
-  // Agenda item actions
   agendaItems.forEach(i => {
     document.getElementById(`item-discuss-${i.id}`)?.addEventListener("click", () => markItemStatus(i.id, "discussed"));
     document.getElementById(`item-table-${i.id}`)?.addEventListener("click", () => markItemStatus(i.id, "tabled"));
@@ -563,7 +581,6 @@ function renderMeeting() {
     document.getElementById(`item-delete-${i.id}`)?.addEventListener("click", () => deleteAgendaItem(i.id));
   });
 
-  // Action item checkboxes
   actionItems.forEach(a => {
     document.getElementById(`action-check-${a.id}`)?.addEventListener("change", (e) => {
       toggleActionDone(a.id, e.target.checked);
@@ -633,7 +650,7 @@ function renderActions() {
   const filtered = filterActionItemsByAssignee(allActions, assigneeFilter);
   const app = document.getElementById("app");
   app.innerHTML = `
-    <button class="back-btn" id="btn-back">← Back to groups</button>
+    <button class="back-btn" id="btn-back">← Back to series</button>
     <div class="page-header">
       <h1>Open Action Items</h1>
     </div>
@@ -670,7 +687,7 @@ function allActionRow(item) {
       <div class="action-row-main">
         <div class="action-row-title">${esc(item.title)}</div>
         <div class="action-row-meta">
-          ${item.group_name ? `<span>${esc(item.group_name)}</span>` : ""}
+          ${item.series_name ? `<span>${esc(item.series_name)}</span>` : ""}
           ${assignee ? `${avatarHtml(assignee)} <span>${esc(assignee.name)}</span>` : ""}
           ${dueFrag}
         </div>
@@ -693,26 +710,26 @@ function closeModal() {
   document.getElementById("modal-overlay")?.remove();
 }
 
-function openNewGroupModal() {
+function openNewSeriesModal() {
   showModal(`
     <div class="modal">
       <div class="modal-header">
-        <h2>New Meeting Group</h2>
+        <h2>New Meeting Series</h2>
         <button class="modal-close" id="modal-close-btn">✕</button>
       </div>
       <div class="modal-body">
         <div id="modal-error"></div>
         <div class="form-group">
           <label>Name</label>
-          <input class="field" id="new-group-name" type="text" placeholder="e.g. Weekly Check-in, Finance Committee" autofocus />
+          <input class="field" id="new-series-name" type="text" placeholder="e.g. Weekly Check-in, Finance Committee" autofocus />
         </div>
         <div class="form-group">
           <label>Description (optional)</label>
-          <input class="field" id="new-group-desc" type="text" placeholder="What is this group for?" />
+          <input class="field" id="new-series-desc" type="text" placeholder="What is this series for?" />
         </div>
         <div class="form-group">
           <label>Recurrence</label>
-          <select class="field" id="new-group-recurrence">
+          <select class="field" id="new-series-recurrence">
             <option value="">None (ad-hoc)</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
@@ -721,22 +738,21 @@ function openNewGroupModal() {
         </div>
         <div class="form-group">
           <label>Audience</label>
-          <select class="field" id="new-group-audience">
-            <option value="everyone">Everyone</option>
-            <option value="adults">Adults only</option>
+          <select class="field" id="new-series-audience">
+            ${audienceOptions("everyone")}
           </select>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost btn-sm" id="modal-cancel-btn">Cancel</button>
-        <button class="btn btn-primary btn-sm" id="modal-save-btn">Create Group</button>
+        <button class="btn btn-primary btn-sm" id="modal-save-btn">Create Series</button>
       </div>
     </div>
   `);
   document.getElementById("modal-close-btn")?.addEventListener("click", closeModal);
   document.getElementById("modal-cancel-btn")?.addEventListener("click", closeModal);
   document.getElementById("modal-save-btn")?.addEventListener("click", async () => {
-    const name = document.getElementById("new-group-name")?.value.trim();
+    const name = document.getElementById("new-series-name")?.value.trim();
     if (!name) { document.getElementById("modal-error").innerHTML = `<div class="error-msg">Name is required.</div>`; return; }
     const btn = document.getElementById("modal-save-btn");
     btn.disabled = true; btn.textContent = "Creating…";
@@ -744,9 +760,9 @@ function openNewGroupModal() {
       await dbq(
         `INSERT INTO meeting_groups (id, name, description, recurrence, audience, created_by, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
         [uuid(), name,
-          document.getElementById("new-group-desc")?.value.trim() || null,
-          document.getElementById("new-group-recurrence")?.value || null,
-          document.getElementById("new-group-audience")?.value || "everyone",
+          document.getElementById("new-series-desc")?.value.trim() || null,
+          document.getElementById("new-series-recurrence")?.value || null,
+          document.getElementById("new-series-audience")?.value || "everyone",
           HUB_MEMBER?.id ?? "unknown",
           now()]
       );
@@ -754,17 +770,17 @@ function openNewGroupModal() {
       await navigateTo("home");
     } catch (e) {
       document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
-      btn.disabled = false; btn.textContent = "Create Group";
+      btn.disabled = false; btn.textContent = "Create Series";
     }
   });
-  document.getElementById("new-group-name")?.addEventListener("keydown", (e) => {
+  document.getElementById("new-series-name")?.addEventListener("keydown", (e) => {
     if (e.key === "Enter") document.getElementById("modal-save-btn")?.click();
   });
 }
 
 function openScheduleModal() {
   const lastScheduled = meetings.find(m => m.scheduled_at)?.scheduled_at;
-  const suggested = suggestNextDate(currentGroup?.recurrence, lastScheduled);
+  const suggested = suggestNextDate(currentSeries?.recurrence, lastScheduled);
   const suggestedDate = suggested ?? "";
   showModal(`
     <div class="modal">
@@ -775,13 +791,13 @@ function openScheduleModal() {
       <div class="modal-body">
         <div id="modal-error"></div>
         <div class="form-group">
-          <label>Title (optional — defaults to group name)</label>
-          <input class="field" id="sched-title" type="text" placeholder="${esc(currentGroup?.name ?? "Meeting")}" />
+          <label>Title (optional — defaults to series name)</label>
+          <input class="field" id="sched-title" type="text" placeholder="${esc(currentSeries?.name ?? "Meeting")}" />
         </div>
         <div class="form-group">
           <label>Date &amp; Time</label>
           <input class="field" id="sched-date" type="datetime-local" value="${suggestedDate}" />
-          ${suggested ? `<div class="hint">Suggested based on ${currentGroup?.recurrence} recurrence</div>` : ""}
+          ${suggested ? `<div class="hint">Suggested based on ${currentSeries?.recurrence} recurrence</div>` : ""}
         </div>
       </div>
       <div class="modal-footer">
@@ -800,10 +816,10 @@ function openScheduleModal() {
     try {
       await dbq(
         `INSERT INTO meetings (id, group_id, title, scheduled_at, status, created_by, created_at) VALUES ($1,$2,$3,$4,'upcoming',$5,$6)`,
-        [uuid(), currentGroup.id, title, scheduled ? new Date(scheduled).toISOString() : null, HUB_MEMBER?.id ?? "unknown", now()]
+        [uuid(), currentSeries.id, title, scheduled ? new Date(scheduled).toISOString() : null, HUB_MEMBER?.id ?? "unknown", now()]
       );
       closeModal();
-      await navigateTo("group", { group: currentGroup });
+      await navigateTo("series", { series: currentSeries });
     } catch (e) {
       document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
       btn.disabled = false; btn.textContent = "Schedule";
@@ -956,7 +972,7 @@ async function saveNotes() {
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 async function init() {
-  await Promise.all([loadMembers(), loadGroups()]);
+  await Promise.all([loadContext(), loadSeries()]);
   renderHome();
 }
 

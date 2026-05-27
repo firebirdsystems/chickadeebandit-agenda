@@ -86,9 +86,9 @@ describe("pastMeetings", () => {
 
 // ── meetingTitle ──────────────────────────────────────────────────────────────
 describe("meetingTitle", () => {
-  it("uses meeting title when present",       () => expect(meetingTitle({ title: "Q1 Review" }, { name: "Board" })).toBe("Q1 Review"));
-  it("falls back to group name when no title",() => expect(meetingTitle({ title: null }, { name: "Board" })).toBe("Board"));
-  it("falls back to Meeting when no group",   () => expect(meetingTitle({ title: "" }, null)).toBe("Meeting"));
+  it("uses meeting title when present",        () => expect(meetingTitle({ title: "Q1 Review" }, { name: "Board" })).toBe("Q1 Review"));
+  it("falls back to series name when no title",() => expect(meetingTitle({ title: null }, { name: "Board" })).toBe("Board"));
+  it("falls back to Meeting when no series",   () => expect(meetingTitle({ title: "" }, null)).toBe("Meeting"));
 });
 
 // ── sortAgendaItems ───────────────────────────────────────────────────────────

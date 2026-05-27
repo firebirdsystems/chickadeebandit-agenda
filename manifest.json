@@ -9,7 +9,7 @@
   "category": "productivity",
   "tags": ["meetings", "agenda", "action-items", "notes"],
   "data_access": {
-    "reads": ["family.members"],
+    "reads": ["family.members", "family.groups"],
     "writes": []
   },
   "permissions": {

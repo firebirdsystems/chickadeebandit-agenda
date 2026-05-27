@@ -25,8 +25,8 @@ export function pastMeetings(meetings) {
     .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 }
 
-export function meetingTitle(meeting, group) {
-  return meeting.title?.trim() || group?.name || "Meeting";
+export function meetingTitle(meeting, series) {
+  return meeting.title?.trim() || series?.name || "Meeting";
 }
 
 // ── Agenda items ──────────────────────────────────────────────────────────────

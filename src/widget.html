@@ -119,7 +119,7 @@ async function dbq(sql, params = []) {
 
 async function init() {
   const [{ rows: upcoming }, { rows: actions }] = await Promise.all([
-    dbq(`SELECT m.*, mg.name AS group_name
+    dbq(`SELECT m.*, mg.name AS series_name
          FROM meetings m
          LEFT JOIN meeting_groups mg ON mg.id = m.group_id
          WHERE m.status IN ('upcoming','in-progress')
@@ -144,7 +144,7 @@ async function init() {
       <div class="next-meeting">
         <div class="next-meeting-icon">${isLive ? "🔴" : "📅"}</div>
         <div>
-          <div class="next-meeting-title">${esc(m.title || m.group_name || "Meeting")}</div>
+          <div class="next-meeting-title">${esc(m.title || m.series_name || "Meeting")}</div>
           <div class="next-meeting-date">${esc(dateStr)}</div>
         </div>
       </div>
