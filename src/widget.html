@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenda Widget</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--hub-font, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+      font-size: 13px;
+      background: #fff;
+      color: #111827;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px 8px;
+      border-bottom: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+    .header-title { font-size: 13px; font-weight: 700; color: #111827; }
+    .header-sub   { font-size: 11px; color: #6b7280; }
+
+    .section {
+      padding: 10px 14px;
+      border-bottom: 1px solid #f3f4f6;
+      flex-shrink: 0;
+    }
+    .section-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; color: #9ca3af; margin-bottom: 6px;
+    }
+
+    .next-meeting {
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .next-meeting-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      background: #dbeafe; display: flex; align-items: center; justify-content: center;
+      font-size: 16px; flex-shrink: 0;
+    }
+    .next-meeting-title { font-size: 13px; font-weight: 600; color: #111827; }
+    .next-meeting-date  { font-size: 11px; color: #6b7280; margin-top: 2px; }
+
+    .action-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 0; border-bottom: 1px solid #f3f4f6;
+    }
+    .action-row:last-child { border-bottom: none; }
+    .action-dot { width: 6px; height: 6px; border-radius: 50%; background: #f59e0b; flex-shrink: 0; }
+    .action-title { font-size: 12px; color: #111827; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .action-assignee { font-size: 11px; color: #9ca3af; flex-shrink: 0; }
+
+    .empty-msg { font-size: 12px; color: #9ca3af; }
+
+    .footer {
+      padding: 7px 14px;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      flex-shrink: 0;
+      background: #f9fafb;
+      margin-top: auto;
+    }
+    .open-link {
+      font-size: 11px; font-weight: 600; color: #111827;
+      text-decoration: none; background: #111827; color: #fff;
+      padding: 4px 10px; border-radius: 6px;
+    }
+    .open-link:hover { opacity: .85; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-title">📋 Agenda</span>
+  <span class="header-sub" id="action-count"></span>
+</div>
+
+<div class="section" id="next-section">
+  <div class="section-label">Next Meeting</div>
+  <div class="empty-msg">Loading…</div>
+</div>
+
+<div class="section" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+  <div class="section-label">Open Actions</div>
+  <div id="actions-list" style="overflow-y:auto;flex:1"></div>
+</div>
+
+<div class="footer">
+  <a class="open-link" href="../index.html">Open</a>
+</div>
+
+<script type="module">
+import { esc, formatDate } from "./logic.js";
+
+const DB = window.__DB_URL ?? "";
+
+async function dbq(sql, params = []) {
+  if (!DB) return { rows: [] };
+  const res = await fetch(DB, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sql, params }),
+  });
+  const json = await res.json();
+  if (json.error) return { rows: [] };
+  return json;
+}
+
+async function init() {
+  const [{ rows: upcoming }, { rows: actions }] = await Promise.all([
+    dbq(`SELECT m.*, mg.name AS group_name
+         FROM meetings m
+         LEFT JOIN meeting_groups mg ON mg.id = m.group_id
+         WHERE m.status IN ('upcoming','in-progress')
+         ORDER BY m.scheduled_at NULLS LAST, m.created_at ASC
+         LIMIT 1`),
+    dbq(`SELECT ai.*, fm_name.name AS assignee_name
+         FROM action_items ai
+         LEFT JOIN (SELECT id, name FROM family_members) fm_name ON fm_name.id = ai.assigned_to
+         WHERE ai.status = 'open'
+         ORDER BY ai.due_date NULLS LAST, ai.created_at ASC
+         LIMIT 5`),
+  ]);
+
+  // Next meeting
+  const nextSection = document.getElementById("next-section");
+  if (upcoming.length > 0) {
+    const m = upcoming[0];
+    const dateStr = m.scheduled_at ? formatDate(m.scheduled_at) : "No date set";
+    const isLive = m.status === "in-progress";
+    nextSection.innerHTML = `
+      <div class="section-label">${isLive ? "🔴 In Progress" : "Next Meeting"}</div>
+      <div class="next-meeting">
+        <div class="next-meeting-icon">${isLive ? "🔴" : "📅"}</div>
+        <div>
+          <div class="next-meeting-title">${esc(m.title || m.group_name || "Meeting")}</div>
+          <div class="next-meeting-date">${esc(dateStr)}</div>
+        </div>
+      </div>
+    `;
+  } else {
+    nextSection.innerHTML = `
+      <div class="section-label">Next Meeting</div>
+      <div class="empty-msg">Nothing scheduled</div>
+    `;
+  }
+
+  // Open actions
+  const actionsList = document.getElementById("actions-list");
+  const countEl = document.getElementById("action-count");
+
+  const { rows: total } = await dbq(`SELECT COUNT(*) AS n FROM action_items WHERE status = 'open'`);
+  const openCount = parseInt(total[0]?.n ?? 0, 10);
+  if (countEl) countEl.textContent = openCount > 0 ? `${openCount} open` : "";
+
+  if (actions.length === 0) {
+    actionsList.innerHTML = `<div class="empty-msg">No open actions</div>`;
+  } else {
+    actionsList.innerHTML = actions.map(a => `
+      <div class="action-row">
+        <div class="action-dot"></div>
+        <div class="action-title">${esc(a.title)}</div>
+        ${a.assignee_name ? `<div class="action-assignee">${esc(a.assignee_name)}</div>` : ""}
+      </div>
+    `).join("");
+  }
+}
+
+init().catch(() => {});
+</script>
+</body>
+</html>

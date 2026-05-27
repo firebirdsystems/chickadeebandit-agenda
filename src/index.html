@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Agenda</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           var(--hub-bg, #f9fafb);
+      --card:         var(--hub-surface, #ffffff);
+      --border:       var(--hub-border, #e5e7eb);
+      --border-mid:   var(--hub-border, #d1d5db);
+      --text:         var(--hub-text, #111827);
+      --muted:        var(--hub-text-muted, #6b7280);
+      --accent:       var(--hub-primary, #111827);
+      --accent-hover: var(--hub-primary-hover, #374151);
+      --accent-light: #f3f4f6;
+      --radius:       var(--hub-radius, 0.5rem);
+      --shadow:       0 1px 3px rgba(0,0,0,.07);
+      --shadow-md:    0 4px 12px rgba(0,0,0,.1);
+      --red:    #dc2626; --red-light:   #fee2e2;
+      --green:  #059669; --green-light: #d1fae5;
+      --amber:  #d97706; --amber-light: #fef3c7;
+      --blue:   #2563eb; --blue-light:  #dbeafe;
+    }
+
+    body {
+      font-family: var(--hub-font, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: var(--hub-font-size, 15px);
+      line-height: 1.5;
+    }
+
+    .app { max-width: 720px; margin: 0 auto; padding: 16px; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 8px; font-size: 0.875rem;
+      font-weight: 600; cursor: pointer; border: none;
+      transition: opacity .15s, background .15s; text-decoration: none; font-family: inherit;
+    }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn-primary { background: var(--accent); color: var(--hub-primary-fg, #fff); }
+    .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1.5px solid var(--border-mid); }
+    .btn-ghost:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .btn-danger { background: var(--red); color: white; }
+    .btn-danger:hover:not(:disabled) { opacity: .88; }
+    .btn-success { background: var(--green); color: white; }
+    .btn-success:hover:not(:disabled) { opacity: .88; }
+    .btn-sm { padding: 5px 12px; font-size: 0.8rem; }
+    .btn-xs { padding: 3px 8px; font-size: 0.75rem; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .card-body { padding: 14px 16px; }
+
+    /* ── Page header ── */
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px; gap: 10px; flex-wrap: wrap;
+    }
+    .page-header h1 { font-size: 1.25rem; font-weight: 700; }
+    .page-header .header-actions { display: flex; gap: 8px; align-items: center; }
+
+    /* ── Back button ── */
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.82rem; color: var(--accent); cursor: pointer;
+      background: none; border: none; padding: 0; margin-bottom: 12px; font-weight: 600;
+      font-family: inherit;
+    }
+    .back-btn:hover { opacity: .75; }
+
+    /* ── Tab nav ── */
+    .tab-nav {
+      display: flex; gap: 2px; border-bottom: 2px solid var(--border); margin-bottom: 16px;
+    }
+    .tab-btn {
+      padding: 6px 14px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+      border: none; background: none; color: var(--muted); font-family: inherit;
+      border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color .15s;
+    }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    /* ── Lists ── */
+    .list { display: flex; flex-direction: column; gap: 8px; }
+
+    .list-item {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+      cursor: pointer; transition: box-shadow .15s, border-color .15s;
+    }
+    .list-item:hover { box-shadow: var(--shadow-md); border-color: var(--border-mid); }
+    .list-item-inner { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .list-item-main { flex: 1; min-width: 0; }
+    .list-item-title { font-weight: 700; font-size: 0.95rem; line-height: 1.3; }
+    .list-item-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+    .list-item-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex; align-items: center;
+      padding: 2px 8px; border-radius: 20px;
+      font-size: 0.72rem; font-weight: 700;
+    }
+    .badge-gray    { background: #e5e7eb; color: var(--muted); }
+    .badge-amber   { background: var(--amber-light); color: var(--amber); }
+    .badge-green   { background: var(--green-light); color: var(--green); }
+    .badge-blue    { background: var(--blue-light);  color: var(--blue); }
+    .badge-red     { background: var(--red-light);   color: var(--red); }
+
+    /* ── Status badge ── */
+    .status-upcoming    { background: var(--blue-light);  color: var(--blue); }
+    .status-in-progress { background: var(--amber-light); color: var(--amber); }
+    .status-completed   { background: var(--green-light); color: var(--green); }
+
+    /* ── Avatar ── */
+    .avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 700; color: white; flex-shrink: 0;
+    }
+    .avatar-sm { width: 22px; height: 22px; font-size: 0.65rem; }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center; padding: 40px 20px; color: var(--muted); font-size: 0.9rem;
+    }
+
+    /* ── Modal overlay ── */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.45);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100; padding: 16px;
+    }
+    .modal {
+      background: var(--card); border-radius: 12px; box-shadow: var(--shadow-md);
+      width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto;
+    }
+    .modal-header {
+      padding: 16px 20px 12px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-header h2 { font-size: 1rem; font-weight: 700; }
+    .modal-close {
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; cursor: pointer; border: none; background: var(--accent-light);
+      font-size: 1rem; color: var(--muted); font-family: inherit;
+    }
+    .modal-close:hover { background: var(--border); color: var(--text); }
+    .modal-body { padding: 16px 20px; }
+    .modal-footer { padding: 12px 20px 16px; display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid var(--border); }
+
+    /* ── Form ── */
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+    .form-group .hint { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+    .field {
+      width: 100%; border: 1.5px solid var(--border-mid); border-radius: 8px;
+      padding: 8px 12px; font-size: 0.88rem; font-family: inherit;
+      background: var(--card); color: var(--text);
+      transition: border-color .15s;
+    }
+    .field:focus { outline: none; border-color: var(--accent); }
+    textarea.field { resize: vertical; min-height: 80px; }
+    select.field { cursor: pointer; }
+
+    /* ── Agenda item row ── */
+    .agenda-row {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 10px 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+      transition: opacity .15s;
+    }
+    .agenda-row.discussed { opacity: .65; }
+    .agenda-row-main { flex: 1; min-width: 0; }
+    .agenda-row-title { font-weight: 600; font-size: 0.9rem; }
+    .agenda-row-desc { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+    .agenda-row-actions { display: flex; gap: 5px; align-items: center; flex-shrink: 0; }
+
+    /* ── Action item row ── */
+    .action-row {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 10px 14px;
+      display: flex; align-items: flex-start; gap: 10px;
+    }
+    .action-row.done { opacity: .55; }
+    .action-checkbox {
+      width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border-mid);
+      cursor: pointer; flex-shrink: 0; margin-top: 2px; appearance: none; background: white;
+      transition: background .15s, border-color .15s;
+    }
+    .action-checkbox:checked { background: var(--green); border-color: var(--green); }
+    .action-row-main { flex: 1; min-width: 0; }
+    .action-row-title { font-size: 0.9rem; font-weight: 600; }
+    .action-row-meta { font-size: 0.78rem; color: var(--muted); margin-top: 2px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .due-soon   { color: var(--amber); font-weight: 600; }
+    .due-overdue { color: var(--red); font-weight: 600; }
+
+    /* ── Notes textarea ── */
+    .notes-area {
+      width: 100%; min-height: 120px; border: 1.5px solid var(--border);
+      border-radius: var(--radius); padding: 10px 12px;
+      font-size: 0.88rem; font-family: inherit; background: var(--card); color: var(--text);
+      resize: vertical; transition: border-color .15s;
+    }
+    .notes-area:focus { outline: none; border-color: var(--accent); }
+
+    /* ── Section headers ── */
+    .section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px; margin-top: 20px;
+    }
+    .section-header:first-child { margin-top: 0; }
+    .section-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+
+    /* ── Loading / error ── */
+    .loading { padding: 24px; text-align: center; color: var(--muted); font-size: 0.9rem; }
+    .error-msg { padding: 8px 12px; background: var(--red-light); color: var(--red); border-radius: 8px; font-size: 0.85rem; margin-bottom: 10px; }
+
+    /* ── Meeting status bar ── */
+    .meeting-status-bar {
+      padding: 12px 16px; border-radius: var(--radius); margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    }
+    .status-bar-upcoming    { background: var(--blue-light);  border: 1px solid #bfdbfe; }
+    .status-bar-in-progress { background: var(--amber-light); border: 1px solid #fde68a; }
+    .status-bar-completed   { background: var(--green-light); border: 1px solid #a7f3d0; }
+    .status-bar-label { font-size: 0.85rem; font-weight: 700; }
+    .status-bar-upcoming .status-bar-label    { color: var(--blue); }
+    .status-bar-in-progress .status-bar-label { color: var(--amber); }
+    .status-bar-completed .status-bar-label   { color: var(--green); }
+
+    /* ── Divider ── */
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  </style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="loading">Loading…</div>
+</div>
+
+<script type="module">
+import {
+  memberColor, initial, esc, isAdult, formatRelativeDate,
+  sortMeetings, upcomingMeetings, pastMeetings, meetingTitle,
+  sortAgendaItems, pendingItems, discussedItems,
+  countOpenActionItems, openActionItems, filterActionItemsByAssignee,
+  suggestNextDate, formatDate, formatDateShort, formatDueDate, avatarHtml,
+} from "./logic.js";
+
+// ── Runtime globals ───────────────────────────────────────────────────────────
+const CONTEXT    = window.__CONTEXT_URL ?? "";
+const DB         = window.__DB_URL      ?? "";
+const HUB_MEMBER = window.__CURRENT_MEMBER ?? null;
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let members     = [];
+let memberMap   = {};
+let view        = "home";      // "home" | "group" | "meeting" | "actions"
+let groups      = [];
+let meetings    = [];          // all meetings for current group
+let agendaItems = [];          // items for current meeting
+let actionItems = [];          // action items for current meeting
+let allActions  = [];          // all open action items (for actions view)
+let currentGroup   = null;
+let currentMeeting = null;
+let assigneeFilter = "";
+let savingNotes    = false;
+let notesDirty     = false;
+
+// ── DB helper ─────────────────────────────────────────────────────────────────
+async function dbq(sql, params = []) {
+  if (!DB) return { rows: [] };
+  const res = await fetch(DB, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sql, params }),
+  });
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  return json;
+}
+
+function uuid() { return crypto.randomUUID(); }
+function now()  { return new Date().toISOString(); }
+
+// ── Data loading ──────────────────────────────────────────────────────────────
+async function loadMembers() {
+  if (!CONTEXT) return;
+  try {
+    const res = await fetch(`${CONTEXT}?keys=family.members`);
+    const data = await res.json();
+    members  = data["family.members"] ?? [];
+    memberMap = Object.fromEntries(members.map(m => [m.id, m]));
+  } catch { /* non-fatal */ }
+}
+
+async function loadGroups() {
+  const { rows } = await dbq(`SELECT * FROM meeting_groups ORDER BY created_at ASC`);
+  groups = rows;
+}
+
+async function loadMeetings(groupId) {
+  const { rows } = await dbq(
+    `SELECT * FROM meetings WHERE group_id = $1 ORDER BY created_at DESC`,
+    [groupId]
+  );
+  meetings = rows;
+}
+
+async function loadMeetingDetail(meetingId) {
+  const [{ rows: ai }, { rows: act }] = await Promise.all([
+    dbq(`SELECT * FROM agenda_items WHERE meeting_id = $1 ORDER BY sort_order ASC, created_at ASC`, [meetingId]),
+    dbq(`SELECT * FROM action_items WHERE meeting_id = $1 ORDER BY created_at ASC`, [meetingId]),
+  ]);
+  agendaItems = ai;
+  actionItems = act;
+}
+
+async function loadAllOpenActions() {
+  const { rows } = await dbq(
+    `SELECT ai.*, mg.name AS group_name, m.title AS meeting_title, m.scheduled_at
+     FROM action_items ai
+     LEFT JOIN meetings m ON m.id = ai.meeting_id
+     LEFT JOIN meeting_groups mg ON mg.id = m.group_id
+     WHERE ai.status = 'open'
+     ORDER BY ai.due_date NULLS LAST, ai.created_at ASC`
+  );
+  allActions = rows;
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────────
+async function navigateTo(newView, opts = {}) {
+  view = newView;
+  if (newView === "home") {
+    currentGroup   = null;
+    currentMeeting = null;
+    await loadGroups();
+    renderHome();
+  } else if (newView === "group") {
+    currentGroup   = opts.group;
+    currentMeeting = null;
+    await loadMeetings(currentGroup.id);
+    renderGroup();
+  } else if (newView === "meeting") {
+    currentMeeting = opts.meeting;
+    await loadMeetingDetail(currentMeeting.id);
+    renderMeeting();
+  } else if (newView === "actions") {
+    currentGroup   = null;
+    currentMeeting = null;
+    await loadAllOpenActions();
+    renderActions();
+  }
+}
+
+// ── Render: Home ──────────────────────────────────────────────────────────────
+function renderHome() {
+  const canCreate = HUB_MEMBER && isAdult(HUB_MEMBER);
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <div class="page-header">
+      <h1>📋 Agenda</h1>
+      <div class="header-actions">
+        <button class="btn btn-ghost btn-sm" id="btn-actions">Action Items</button>
+        ${canCreate ? `<button class="btn btn-primary btn-sm" id="btn-new-group">+ New Group</button>` : ""}
+      </div>
+    </div>
+    ${groups.length === 0
+      ? `<div class="empty"><p>No meeting groups yet.</p>${canCreate ? `<button class="btn btn-primary" style="margin-top:12px" id="btn-new-group-empty">Create a group</button>` : ""}</div>`
+      : `<div class="list">${groups.map(groupCard).join("")}</div>`
+    }
+  `;
+  document.getElementById("btn-actions")?.addEventListener("click", () => navigateTo("actions"));
+  document.getElementById("btn-new-group")?.addEventListener("click", openNewGroupModal);
+  document.getElementById("btn-new-group-empty")?.addEventListener("click", openNewGroupModal);
+  groups.forEach(g => {
+    document.getElementById(`group-${g.id}`)?.addEventListener("click", () => {
+      navigateTo("group", { group: g });
+    });
+  });
+}
+
+function groupCard(g) {
+  return `
+    <div class="list-item" id="group-${g.id}">
+      <div class="list-item-inner">
+        <div class="list-item-main">
+          <div class="list-item-title">${esc(g.name)}</div>
+          ${g.description ? `<div class="list-item-sub">${esc(g.description)}</div>` : ""}
+          ${g.recurrence ? `<div class="list-item-sub">Recurs ${g.recurrence}</div>` : ""}
+        </div>
+        <div class="list-item-right">
+          <span class="badge badge-gray">${g.audience === "adults" ? "Adults only" : "Everyone"}</span>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ── Render: Group ─────────────────────────────────────────────────────────────
+function renderGroup() {
+  const canManage = HUB_MEMBER && isAdult(HUB_MEMBER);
+  const upcoming  = upcomingMeetings(meetings);
+  const past      = pastMeetings(meetings);
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <button class="back-btn" id="btn-back">← Back to groups</button>
+    <div class="page-header">
+      <h1>${esc(currentGroup.name)}</h1>
+      <div class="header-actions">
+        ${canManage ? `<button class="btn btn-primary btn-sm" id="btn-schedule">+ Schedule Meeting</button>` : ""}
+      </div>
+    </div>
+    ${currentGroup.description ? `<p style="color:var(--muted);font-size:.85rem;margin-bottom:14px">${esc(currentGroup.description)}</p>` : ""}
+    ${upcoming.length === 0 && past.length === 0
+      ? `<div class="empty">No meetings yet.${canManage ? ` Schedule the first one!` : ""}</div>`
+      : `
+        ${upcoming.length > 0 ? `
+          <div class="section-header"><span class="section-title">Upcoming &amp; In Progress</span></div>
+          <div class="list">${upcoming.map(m => meetingCard(m)).join("")}</div>
+        ` : ""}
+        ${past.length > 0 ? `
+          <div class="section-header" style="margin-top:20px"><span class="section-title">Past Meetings</span></div>
+          <div class="list">${past.map(m => meetingCard(m)).join("")}</div>
+        ` : ""}
+      `
+    }
+  `;
+  document.getElementById("btn-back")?.addEventListener("click", () => navigateTo("home"));
+  document.getElementById("btn-schedule")?.addEventListener("click", () => openScheduleModal());
+  meetings.forEach(m => {
+    document.getElementById(`meeting-${m.id}`)?.addEventListener("click", () => {
+      navigateTo("meeting", { meeting: m });
+    });
+  });
+}
+
+function meetingCard(m) {
+  const title = meetingTitle(m, currentGroup);
+  const statusClass = `status-${m.status}`;
+  const statusLabel = m.status === "in-progress" ? "In Progress" : m.status === "completed" ? "Completed" : "Upcoming";
+  const dateStr = m.scheduled_at ? formatDate(m.scheduled_at) : "No date set";
+  return `
+    <div class="list-item" id="meeting-${m.id}">
+      <div class="list-item-inner">
+        <div class="list-item-main">
+          <div class="list-item-title">${esc(title)}</div>
+          <div class="list-item-sub">${esc(dateStr)}</div>
+        </div>
+        <div class="list-item-right">
+          <span class="badge ${statusClass}">${esc(statusLabel)}</span>
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ── Render: Meeting ───────────────────────────────────────────────────────────
+function renderMeeting() {
+  const canManage = HUB_MEMBER && isAdult(HUB_MEMBER);
+  const inProgress = currentMeeting.status === "in-progress";
+  const isCompleted = currentMeeting.status === "completed";
+  const title = meetingTitle(currentMeeting, currentGroup);
+  const dateStr = currentMeeting.scheduled_at ? formatDate(currentMeeting.scheduled_at) : "No date set";
+  const pending  = pendingItems(agendaItems);
+  const discussed = discussedItems(agendaItems);
+  const openActions = openActionItems(actionItems);
+  const doneActions = actionItems.filter(a => a.status !== "open");
+
+  let statusBarClass = `status-bar-${currentMeeting.status}`;
+  let statusBarLabel = inProgress ? "Meeting in progress" : isCompleted ? "Meeting completed" : "Upcoming meeting";
+  let statusBarBtn = "";
+  if (canManage && !isCompleted) {
+    statusBarBtn = inProgress
+      ? `<button class="btn btn-sm btn-danger" id="btn-end-meeting">End Meeting</button>`
+      : `<button class="btn btn-sm btn-success" id="btn-start-meeting">Start Meeting</button>`;
+  }
+
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <button class="back-btn" id="btn-back">← Back to ${esc(currentGroup?.name ?? "group")}</button>
+    <div class="page-header">
+      <div>
+        <h1>${esc(title)}</h1>
+        <p style="font-size:.82rem;color:var(--muted);margin-top:2px">${esc(dateStr)}</p>
+      </div>
+    </div>
+
+    <div class="meeting-status-bar ${statusBarClass}">
+      <span class="status-bar-label">${esc(statusBarLabel)}</span>
+      ${statusBarBtn}
+    </div>
+
+    <!-- Agenda Items -->
+    <div class="section-header">
+      <span class="section-title">Agenda Items (${agendaItems.length})</span>
+      ${!isCompleted ? `<button class="btn btn-ghost btn-xs" id="btn-add-item">+ Add Item</button>` : ""}
+    </div>
+    ${agendaItems.length === 0
+      ? `<p style="font-size:.85rem;color:var(--muted);margin-bottom:8px">No agenda items yet.</p>`
+      : `
+        <div class="list" style="gap:6px">
+          ${pending.map(i => agendaItemRow(i, canManage && inProgress)).join("")}
+          ${discussed.map(i => agendaItemRow(i, false)).join("")}
+        </div>
+      `
+    }
+
+    <!-- Action Items -->
+    <div class="section-header">
+      <span class="section-title">Action Items (${openActions.length} open)</span>
+      ${!isCompleted ? `<button class="btn btn-ghost btn-xs" id="btn-add-action">+ Add Action</button>` : ""}
+    </div>
+    ${actionItems.length === 0
+      ? `<p style="font-size:.85rem;color:var(--muted);margin-bottom:8px">No action items.</p>`
+      : `
+        <div class="list" style="gap:6px">
+          ${openActions.map(a => actionItemRow(a, !isCompleted)).join("")}
+          ${doneActions.map(a => actionItemRow(a, false)).join("")}
+        </div>
+      `
+    }
+
+    <!-- Notes -->
+    <hr class="divider" />
+    <div class="section-header">
+      <span class="section-title">Meeting Notes</span>
+      <span id="notes-status" style="font-size:.75rem;color:var(--muted)"></span>
+    </div>
+    <textarea class="notes-area" id="notes-field" ${isCompleted ? "readonly" : ""} placeholder="Capture key decisions, context, and discussion notes here…">${esc(currentMeeting.notes ?? "")}</textarea>
+    ${!isCompleted ? `<div style="margin-top:6px;text-align:right"><button class="btn btn-sm btn-ghost" id="btn-save-notes">Save Notes</button></div>` : ""}
+  `;
+
+  document.getElementById("btn-back")?.addEventListener("click", () => {
+    if (currentGroup) navigateTo("group", { group: currentGroup });
+    else navigateTo("home");
+  });
+  document.getElementById("btn-start-meeting")?.addEventListener("click", () => updateMeetingStatus("in-progress"));
+  document.getElementById("btn-end-meeting")?.addEventListener("click", () => updateMeetingStatus("completed"));
+  document.getElementById("btn-add-item")?.addEventListener("click", openAddItemModal);
+  document.getElementById("btn-add-action")?.addEventListener("click", () => openAddActionModal());
+  document.getElementById("btn-save-notes")?.addEventListener("click", saveNotes);
+
+  // Agenda item actions
+  agendaItems.forEach(i => {
+    document.getElementById(`item-discuss-${i.id}`)?.addEventListener("click", () => markItemStatus(i.id, "discussed"));
+    document.getElementById(`item-table-${i.id}`)?.addEventListener("click", () => markItemStatus(i.id, "tabled"));
+    document.getElementById(`item-reopen-${i.id}`)?.addEventListener("click", () => markItemStatus(i.id, "pending"));
+    document.getElementById(`item-delete-${i.id}`)?.addEventListener("click", () => deleteAgendaItem(i.id));
+  });
+
+  // Action item checkboxes
+  actionItems.forEach(a => {
+    document.getElementById(`action-check-${a.id}`)?.addEventListener("change", (e) => {
+      toggleActionDone(a.id, e.target.checked);
+    });
+  });
+}
+
+function agendaItemRow(item, canAct) {
+  const submitter = memberMap[item.submitted_by];
+  const isDone = item.status !== "pending";
+  const statusBadge = item.status === "discussed"
+    ? `<span class="badge badge-green">Discussed</span>`
+    : item.status === "tabled"
+    ? `<span class="badge badge-amber">Tabled</span>`
+    : "";
+  const actions = canAct
+    ? `<button class="btn btn-xs btn-ghost" id="item-discuss-${item.id}">✓</button>
+       <button class="btn btn-xs btn-ghost" id="item-table-${item.id}" title="Table">⏸</button>`
+    : isDone
+    ? `<button class="btn btn-xs btn-ghost" id="item-reopen-${item.id}" title="Reopen">↩</button>`
+    : `<button class="btn btn-xs btn-ghost" id="item-delete-${item.id}" title="Remove" style="color:var(--red)">✕</button>`;
+  return `
+    <div class="agenda-row ${isDone ? "discussed" : ""}">
+      <div class="agenda-row-main">
+        <div class="agenda-row-title">${esc(item.title)}</div>
+        ${item.description ? `<div class="agenda-row-desc">${esc(item.description)}</div>` : ""}
+        <div style="font-size:.75rem;color:var(--muted);margin-top:3px">
+          Submitted by ${esc(submitter?.name ?? "Unknown")}
+        </div>
+      </div>
+      <div class="agenda-row-actions">
+        ${statusBadge}
+        ${actions}
+      </div>
+    </div>
+  `;
+}
+
+function actionItemRow(item, canToggle) {
+  const assignee = item.assigned_to ? memberMap[item.assigned_to] : null;
+  const due = formatDueDate(item.due_date);
+  const isDone = item.status !== "open";
+  let dueFrag = "";
+  if (due) {
+    const cls = due.overdue ? "due-overdue" : due.soon ? "due-soon" : "";
+    dueFrag = `<span class="${cls}">${due.overdue ? "Overdue · " : due.soon ? "Due soon · " : ""}${esc(due.label)}</span>`;
+  }
+  return `
+    <div class="action-row ${isDone ? "done" : ""}">
+      ${canToggle
+        ? `<input type="checkbox" class="action-checkbox" id="action-check-${item.id}" ${isDone ? "checked" : ""} />`
+        : `<div style="width:18px;height:18px;border-radius:4px;background:${isDone ? "var(--green)" : "var(--border)"};flex-shrink:0;margin-top:2px"></div>`
+      }
+      <div class="action-row-main">
+        <div class="action-row-title">${esc(item.title)}</div>
+        <div class="action-row-meta">
+          ${assignee ? `${avatarHtml({...assignee, id: assignee.id})} <span>${esc(assignee.name)}</span>` : `<span style="color:var(--muted)">Unassigned</span>`}
+          ${dueFrag}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ── Render: All Action Items ──────────────────────────────────────────────────
+function renderActions() {
+  const filtered = filterActionItemsByAssignee(allActions, assigneeFilter);
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <button class="back-btn" id="btn-back">← Back to groups</button>
+    <div class="page-header">
+      <h1>Open Action Items</h1>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+      <label style="font-size:.82rem;font-weight:600">Filter by:</label>
+      <select class="field" id="assignee-filter" style="width:auto;min-width:140px;padding:5px 10px;">
+        <option value="">Everyone</option>
+        ${members.map(m => `<option value="${esc(m.id)}" ${assigneeFilter === m.id ? "selected" : ""}>${esc(m.name)}</option>`).join("")}
+      </select>
+    </div>
+    ${filtered.length === 0
+      ? `<div class="empty">No open action items${assigneeFilter ? " for this member" : ""}.</div>`
+      : `<div class="list" style="gap:6px">${filtered.map(a => allActionRow(a)).join("")}</div>`
+    }
+  `;
+  document.getElementById("btn-back")?.addEventListener("click", () => navigateTo("home"));
+  document.getElementById("assignee-filter")?.addEventListener("change", (e) => {
+    assigneeFilter = e.target.value;
+    renderActions();
+  });
+}
+
+function allActionRow(item) {
+  const assignee = item.assigned_to ? memberMap[item.assigned_to] : null;
+  const due = formatDueDate(item.due_date);
+  let dueFrag = "";
+  if (due) {
+    const cls = due.overdue ? "due-overdue" : due.soon ? "due-soon" : "";
+    dueFrag = `<span class="${cls}">${due.overdue ? "Overdue · " : due.soon ? "Due soon · " : ""}${esc(due.label)}</span>`;
+  }
+  return `
+    <div class="action-row">
+      <div style="width:8px;height:8px;border-radius:50%;background:var(--amber);flex-shrink:0;margin-top:6px"></div>
+      <div class="action-row-main">
+        <div class="action-row-title">${esc(item.title)}</div>
+        <div class="action-row-meta">
+          ${item.group_name ? `<span>${esc(item.group_name)}</span>` : ""}
+          ${assignee ? `${avatarHtml(assignee)} <span>${esc(assignee.name)}</span>` : ""}
+          ${dueFrag}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ── Modals ────────────────────────────────────────────────────────────────────
+function showModal(html) {
+  const div = document.createElement("div");
+  div.className = "modal-overlay";
+  div.id = "modal-overlay";
+  div.innerHTML = html;
+  div.addEventListener("click", (e) => { if (e.target === div) closeModal(); });
+  document.body.appendChild(div);
+}
+
+function closeModal() {
+  document.getElementById("modal-overlay")?.remove();
+}
+
+function openNewGroupModal() {
+  showModal(`
+    <div class="modal">
+      <div class="modal-header">
+        <h2>New Meeting Group</h2>
+        <button class="modal-close" id="modal-close-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-error"></div>
+        <div class="form-group">
+          <label>Name</label>
+          <input class="field" id="new-group-name" type="text" placeholder="e.g. Weekly Check-in, Finance Committee" autofocus />
+        </div>
+        <div class="form-group">
+          <label>Description (optional)</label>
+          <input class="field" id="new-group-desc" type="text" placeholder="What is this group for?" />
+        </div>
+        <div class="form-group">
+          <label>Recurrence</label>
+          <select class="field" id="new-group-recurrence">
+            <option value="">None (ad-hoc)</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Audience</label>
+          <select class="field" id="new-group-audience">
+            <option value="everyone">Everyone</option>
+            <option value="adults">Adults only</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" id="modal-cancel-btn">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="modal-save-btn">Create Group</button>
+      </div>
+    </div>
+  `);
+  document.getElementById("modal-close-btn")?.addEventListener("click", closeModal);
+  document.getElementById("modal-cancel-btn")?.addEventListener("click", closeModal);
+  document.getElementById("modal-save-btn")?.addEventListener("click", async () => {
+    const name = document.getElementById("new-group-name")?.value.trim();
+    if (!name) { document.getElementById("modal-error").innerHTML = `<div class="error-msg">Name is required.</div>`; return; }
+    const btn = document.getElementById("modal-save-btn");
+    btn.disabled = true; btn.textContent = "Creating…";
+    try {
+      await dbq(
+        `INSERT INTO meeting_groups (id, name, description, recurrence, audience, created_by, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+        [uuid(), name,
+          document.getElementById("new-group-desc")?.value.trim() || null,
+          document.getElementById("new-group-recurrence")?.value || null,
+          document.getElementById("new-group-audience")?.value || "everyone",
+          HUB_MEMBER?.id ?? "unknown",
+          now()]
+      );
+      closeModal();
+      await navigateTo("home");
+    } catch (e) {
+      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
+      btn.disabled = false; btn.textContent = "Create Group";
+    }
+  });
+  document.getElementById("new-group-name")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") document.getElementById("modal-save-btn")?.click();
+  });
+}
+
+function openScheduleModal() {
+  const lastScheduled = meetings.find(m => m.scheduled_at)?.scheduled_at;
+  const suggested = suggestNextDate(currentGroup?.recurrence, lastScheduled);
+  const suggestedDate = suggested ?? "";
+  showModal(`
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Schedule Meeting</h2>
+        <button class="modal-close" id="modal-close-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-error"></div>
+        <div class="form-group">
+          <label>Title (optional — defaults to group name)</label>
+          <input class="field" id="sched-title" type="text" placeholder="${esc(currentGroup?.name ?? "Meeting")}" />
+        </div>
+        <div class="form-group">
+          <label>Date &amp; Time</label>
+          <input class="field" id="sched-date" type="datetime-local" value="${suggestedDate}" />
+          ${suggested ? `<div class="hint">Suggested based on ${currentGroup?.recurrence} recurrence</div>` : ""}
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" id="modal-cancel-btn">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="modal-save-btn">Schedule</button>
+      </div>
+    </div>
+  `);
+  document.getElementById("modal-close-btn")?.addEventListener("click", closeModal);
+  document.getElementById("modal-cancel-btn")?.addEventListener("click", closeModal);
+  document.getElementById("modal-save-btn")?.addEventListener("click", async () => {
+    const btn = document.getElementById("modal-save-btn");
+    btn.disabled = true; btn.textContent = "Scheduling…";
+    const title     = document.getElementById("sched-title")?.value.trim() || null;
+    const scheduled = document.getElementById("sched-date")?.value || null;
+    try {
+      await dbq(
+        `INSERT INTO meetings (id, group_id, title, scheduled_at, status, created_by, created_at) VALUES ($1,$2,$3,$4,'upcoming',$5,$6)`,
+        [uuid(), currentGroup.id, title, scheduled ? new Date(scheduled).toISOString() : null, HUB_MEMBER?.id ?? "unknown", now()]
+      );
+      closeModal();
+      await navigateTo("group", { group: currentGroup });
+    } catch (e) {
+      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
+      btn.disabled = false; btn.textContent = "Schedule";
+    }
+  });
+}
+
+function openAddItemModal() {
+  showModal(`
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Add Agenda Item</h2>
+        <button class="modal-close" id="modal-close-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-error"></div>
+        <div class="form-group">
+          <label>Title</label>
+          <input class="field" id="item-title" type="text" placeholder="What needs to be discussed?" autofocus />
+        </div>
+        <div class="form-group">
+          <label>Description (optional)</label>
+          <textarea class="field" id="item-desc" rows="3" placeholder="Background context, links, or details…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" id="modal-cancel-btn">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="modal-save-btn">Add Item</button>
+      </div>
+    </div>
+  `);
+  document.getElementById("modal-close-btn")?.addEventListener("click", closeModal);
+  document.getElementById("modal-cancel-btn")?.addEventListener("click", closeModal);
+  document.getElementById("modal-save-btn")?.addEventListener("click", async () => {
+    const title = document.getElementById("item-title")?.value.trim();
+    if (!title) { document.getElementById("modal-error").innerHTML = `<div class="error-msg">Title is required.</div>`; return; }
+    const btn = document.getElementById("modal-save-btn");
+    btn.disabled = true; btn.textContent = "Adding…";
+    const sortOrder = agendaItems.length;
+    try {
+      await dbq(
+        `INSERT INTO agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,'pending',$7)`,
+        [uuid(), currentMeeting.id, title,
+          document.getElementById("item-desc")?.value.trim() || null,
+          HUB_MEMBER?.id ?? "unknown", sortOrder, now()]
+      );
+      closeModal();
+      await loadMeetingDetail(currentMeeting.id);
+      renderMeeting();
+    } catch (e) {
+      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
+      btn.disabled = false; btn.textContent = "Add Item";
+    }
+  });
+  document.getElementById("item-title")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") document.getElementById("modal-save-btn")?.click();
+  });
+}
+
+function openAddActionModal(agendaItemId = null) {
+  showModal(`
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Add Action Item</h2>
+        <button class="modal-close" id="modal-close-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-error"></div>
+        <div class="form-group">
+          <label>Title</label>
+          <input class="field" id="action-title" type="text" placeholder="What needs to be done?" autofocus />
+        </div>
+        <div class="form-group">
+          <label>Assigned to (optional)</label>
+          <select class="field" id="action-assignee">
+            <option value="">Unassigned</option>
+            ${members.map(m => `<option value="${esc(m.id)}">${esc(m.name)}</option>`).join("")}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Due date (optional)</label>
+          <input class="field" id="action-due" type="date" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" id="modal-cancel-btn">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="modal-save-btn">Add Action</button>
+      </div>
+    </div>
+  `);
+  document.getElementById("modal-close-btn")?.addEventListener("click", closeModal);
+  document.getElementById("modal-cancel-btn")?.addEventListener("click", closeModal);
+  document.getElementById("modal-save-btn")?.addEventListener("click", async () => {
+    const title = document.getElementById("action-title")?.value.trim();
+    if (!title) { document.getElementById("modal-error").innerHTML = `<div class="error-msg">Title is required.</div>`; return; }
+    const btn = document.getElementById("modal-save-btn");
+    btn.disabled = true; btn.textContent = "Adding…";
+    const assignee = document.getElementById("action-assignee")?.value || null;
+    const dueVal   = document.getElementById("action-due")?.value || null;
+    try {
+      await dbq(
+        `INSERT INTO action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,'open',$7)`,
+        [uuid(), currentMeeting.id, agendaItemId, title, assignee, dueVal, now()]
+      );
+      closeModal();
+      await loadMeetingDetail(currentMeeting.id);
+      renderMeeting();
+    } catch (e) {
+      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
+      btn.disabled = false; btn.textContent = "Add Action";
+    }
+  });
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+async function updateMeetingStatus(status) {
+  await dbq(`UPDATE meetings SET status = $1 WHERE id = $2`, [status, currentMeeting.id]);
+  currentMeeting = { ...currentMeeting, status };
+  renderMeeting();
+}
+
+async function markItemStatus(itemId, status) {
+  await dbq(`UPDATE agenda_items SET status = $1 WHERE id = $2`, [status, itemId]);
+  agendaItems = agendaItems.map(i => i.id === itemId ? { ...i, status } : i);
+  renderMeeting();
+}
+
+async function deleteAgendaItem(itemId) {
+  await dbq(`DELETE FROM agenda_items WHERE id = $1`, [itemId]);
+  agendaItems = agendaItems.filter(i => i.id !== itemId);
+  renderMeeting();
+}
+
+async function toggleActionDone(actionId, done) {
+  const status = done ? "done" : "open";
+  const completedAt = done ? now() : null;
+  await dbq(`UPDATE action_items SET status = $1, completed_at = $2 WHERE id = $3`, [status, completedAt, actionId]);
+  actionItems = actionItems.map(a => a.id === actionId ? { ...a, status, completed_at: completedAt } : a);
+  renderMeeting();
+}
+
+async function saveNotes() {
+  const notes = document.getElementById("notes-field")?.value ?? "";
+  const status = document.getElementById("notes-status");
+  if (status) status.textContent = "Saving…";
+  await dbq(`UPDATE meetings SET notes = $1 WHERE id = $2`, [notes, currentMeeting.id]);
+  currentMeeting = { ...currentMeeting, notes };
+  if (status) { status.textContent = "Saved"; setTimeout(() => { if (status) status.textContent = ""; }, 2000); }
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+async function init() {
+  await Promise.all([loadMembers(), loadGroups()]);
+  renderHome();
+}
+
+init().catch((e) => {
+  document.getElementById("app").innerHTML = `<div class="error-msg">Failed to load: ${esc(e.message)}</div>`;
+});
+</script>
+</body>
+</html>

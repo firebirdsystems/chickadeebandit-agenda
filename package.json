@@ -1,0 +1,16 @@
+{
+  "name": "chickadee-app-agenda",
+  "version": "1.0.0",
+  "description": "Agenda app for Chickadee Bandit — structured meetings with agenda items, action items, and notes.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "node dev-server.mjs"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "agenda",
+  "name": "Agenda",
+  "version": "1.0.0",
+  "description": "Run structured meetings for your household or organization. Collect agenda items, track action items, and capture notes.",
+  "entrypoint": "index.html",
+  "runtime": "static",
+  "storage": "db",
+  "category": "productivity",
+  "tags": ["meetings", "agenda", "action-items", "notes"],
+  "data_access": {
+    "reads": ["family.members"],
+    "writes": []
+  },
+  "permissions": {
+    "default_audience": "everyone",
+    "requires_approval": false
+  },
+  "resource_limits": {
+    "max_db_bytes": 10485760
+  },
+  "nav": {
+    "label": "Agenda"
+  },
+  "widget": {
+    "label": "Agenda",
+    "size": "medium"
+  },
+  "icon": "📋"
+}
