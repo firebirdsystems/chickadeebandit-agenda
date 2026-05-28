@@ -6,7 +6,7 @@
   "entrypoint": "index.html",
   "runtime": "static",
   "storage": "db",
-  "category": "productivity",
+  "category": "general",
   "tags": ["meetings", "agenda", "action-items", "notes"],
   "data_access": {
     "reads": ["family.members", "family.groups"],
