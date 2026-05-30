@@ -970,10 +970,23 @@ async function saveNotes() {
   if (status) { status.textContent = "Saved"; setTimeout(() => { if (status) status.textContent = ""; }, 2000); }
 }
 
+// ── Deep link ─────────────────────────────────────────────────────────────────
+async function handleDeepLink() {
+  const meetingId = new URLSearchParams(window.location.search).get("meetingId");
+  if (!meetingId) return;
+  const { rows } = await dbq(`SELECT * FROM meetings WHERE id = $1`, [meetingId]);
+  const meeting = rows[0];
+  if (!meeting) return;
+  const { rows: seriesRows } = await dbq(`SELECT * FROM meeting_groups WHERE id = $1`, [meeting.group_id]);
+  currentSeries = seriesRows[0] ?? null;
+  await navigateTo("meeting", { meeting });
+}
+
 // ── Boot ──────────────────────────────────────────────────────────────────────
 async function init() {
   await Promise.all([loadContext(), loadSeries()]);
   renderHome();
+  await handleDeepLink();
 }
 
 init().catch((e) => {
