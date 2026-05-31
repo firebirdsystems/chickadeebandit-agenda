@@ -26,5 +26,10 @@
     "label": "Agenda",
     "size": "medium"
   },
-  "icon": "📋"
+  "icon": "📋",
+  "ai_access": {
+    "allowed": true,
+    "mode": "read",
+    "db_exports": ["upcoming_meetings", "open_action_items"]
+  }
 }
