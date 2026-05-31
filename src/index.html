@@ -505,9 +505,10 @@ function renderMeeting() {
   let statusBarLabel = inProgress ? "Meeting in progress" : isCompleted ? "Meeting completed" : "Upcoming meeting";
   let statusBarBtn = "";
   if (canManage && !isCompleted) {
+    const canDelete = !inProgress && agendaItems.length === 0;
     statusBarBtn = inProgress
       ? `<button class="btn btn-sm btn-danger" id="btn-end-meeting">End Meeting</button>`
-      : `<button class="btn btn-sm btn-success" id="btn-start-meeting">Start Meeting</button>`;
+      : `${canDelete ? `<button class="btn btn-sm btn-danger" id="btn-delete-meeting">Delete</button>` : ""}<button class="btn btn-sm btn-success" id="btn-start-meeting">Start Meeting</button>`;
   }
 
   const app = document.getElementById("app");
@@ -571,6 +572,7 @@ function renderMeeting() {
   });
   document.getElementById("btn-start-meeting")?.addEventListener("click", () => updateMeetingStatus("in-progress"));
   document.getElementById("btn-end-meeting")?.addEventListener("click", () => updateMeetingStatus("completed"));
+  document.getElementById("btn-delete-meeting")?.addEventListener("click", deleteMeeting);
   document.getElementById("btn-add-item")?.addEventListener("click", openAddItemModal);
   document.getElementById("btn-add-action")?.addEventListener("click", () => openAddActionModal());
   document.getElementById("btn-save-notes")?.addEventListener("click", saveNotes);
@@ -941,6 +943,15 @@ async function updateMeetingStatus(status) {
   await dbq(`UPDATE meetings SET status = $1 WHERE id = $2`, [status, currentMeeting.id]);
   currentMeeting = { ...currentMeeting, status };
   renderMeeting();
+}
+
+async function deleteMeeting() {
+  const title = meetingTitle(currentMeeting, currentSeries);
+  if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+  await dbq(`DELETE FROM action_items WHERE meeting_id = $1`, [currentMeeting.id]);
+  await dbq(`DELETE FROM meetings WHERE id = $1`, [currentMeeting.id]);
+  syncMeetingsToStore().catch(() => {});
+  await navigateTo("series", { series: currentSeries });
 }
 
 async function markItemStatus(itemId, status) {
