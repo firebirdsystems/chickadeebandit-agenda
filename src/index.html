@@ -262,6 +262,7 @@ import {
 // ── Runtime globals ───────────────────────────────────────────────────────────
 const CONTEXT    = window.__CONTEXT_URL ?? "";
 const DB         = window.__DB_URL      ?? "";
+const STORE_URL  = window.__STORE_URL   ?? "";
 const HUB_MEMBER = window.__CURRENT_MEMBER ?? null;
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -818,6 +819,7 @@ function openScheduleModal() {
         `INSERT INTO meetings (id, group_id, title, scheduled_at, status, created_by, created_at) VALUES ($1,$2,$3,$4,'upcoming',$5,$6)`,
         [uuid(), currentSeries.id, title, scheduled ? new Date(scheduled).toISOString() : null, HUB_MEMBER?.id ?? "unknown", now()]
       );
+      syncMeetingsToStore().catch(() => {});
       closeModal();
       await navigateTo("series", { series: currentSeries });
     } catch (e) {
@@ -968,6 +970,34 @@ async function saveNotes() {
   await dbq(`UPDATE meetings SET notes = $1 WHERE id = $2`, [notes, currentMeeting.id]);
   currentMeeting = { ...currentMeeting, notes };
   if (status) { status.textContent = "Saved"; setTimeout(() => { if (status) status.textContent = ""; }, 2000); }
+}
+
+// ── Calendar export ───────────────────────────────────────────────────────────
+
+async function syncMeetingsToStore() {
+  if (!STORE_URL || !DB) return;
+  const { rows } = await dbq(
+    `SELECT m.id, m.title, m.scheduled_at, mg.name AS series_name, m.created_by
+     FROM meetings m
+     JOIN meeting_groups mg ON mg.id = m.group_id
+     WHERE m.status != 'completed' AND m.scheduled_at IS NOT NULL AND m.scheduled_at > $1
+     ORDER BY m.scheduled_at ASC`,
+    [new Date().toISOString()]
+  );
+  const events = (rows ?? []).map(m => ({
+    id: m.id,
+    title: (m.title?.trim()) || m.series_name || "Meeting",
+    description: `${m.series_name} meeting`,
+    start_at: m.scheduled_at,
+    end_at: m.scheduled_at,
+    all_day: false,
+    family_member_id: m.created_by ?? null,
+  }));
+  await fetch(STORE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ key: "meetings", value: JSON.stringify(events) }),
+  }).catch(() => {});
 }
 
 // ── Deep link ─────────────────────────────────────────────────────────────────
