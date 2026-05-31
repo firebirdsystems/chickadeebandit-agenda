@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
 import { describe, it, expect } from "vitest";
@@ -53,3 +53,81 @@ describe("manifest.json", () => {
     expect(manifest.widget?.label).toBeTruthy();
   });
 });
+
+// ── ai_access SQL file validation ─────────────────────────────────────────────
+if (manifest.ai_access) {
+  const ai = manifest.ai_access;
+
+  const SQL_TYPES = [
+    { field: "db_exports",   dir: "queries",   keyword: /^(SELECT|WITH)\b/i, label: "SELECT or WITH" },
+    { field: "db_mutations", dir: "mutations",  keyword: /^UPDATE\b/i,        label: "UPDATE"         },
+    { field: "db_inserts",   dir: "inserts",    keyword: /^INSERT\b/i,        label: "INSERT"         },
+    { field: "db_deletes",   dir: "deletes",    keyword: /^DELETE\b/i,        label: "DELETE"         },
+  ];
+
+  for (const { field, dir, keyword, label } of SQL_TYPES) {
+    const names = ai[field] ?? [];
+    if (names.length === 0) continue;
+
+    describe(`ai_access.${field}`, () => {
+      it(`each name has a src/${dir}/{name}.sql file`, () => {
+        for (const name of names) {
+          const path = join(__dirname, `../src/${dir}/${name}.sql`);
+          expect(existsSync(path), `missing: src/${dir}/${name}.sql`).toBe(true);
+        }
+      });
+
+      it(`each SQL file starts with ${label}`, () => {
+        for (const name of names) {
+          const path = join(__dirname, `../src/${dir}/${name}.sql`);
+          if (!existsSync(path)) continue;
+          const sql = readFileSync(path, "utf-8").trim();
+          expect(
+            keyword.test(sql),
+            `src/${dir}/${name}.sql must start with ${label}, got: ${sql.slice(0, 50)}`
+          ).toBe(true);
+        }
+      });
+
+      it(`each SQL file filters by household_id`, () => {
+        for (const name of names) {
+          const path = join(__dirname, `../src/${dir}/${name}.sql`);
+          if (!existsSync(path)) continue;
+          const sql = readFileSync(path, "utf-8");
+          expect(
+            sql.includes("household_id"),
+            `src/${dir}/${name}.sql must filter by household_id`
+          ).toBe(true);
+        }
+      });
+
+      it(`each SQL file is a single statement (no semicolons)`, () => {
+        for (const name of names) {
+          const path = join(__dirname, `../src/${dir}/${name}.sql`);
+          if (!existsSync(path)) continue;
+          const sql = readFileSync(path, "utf-8");
+          expect(sql.includes(";"), `src/${dir}/${name}.sql must not contain semicolons`).toBe(false);
+        }
+      });
+    });
+  }
+
+  if (ai.db_inserts?.length) {
+    describe("ai_access.db_inserts schemas", () => {
+      it("each insert has a src/schemas/{name}.json file", () => {
+        for (const name of ai.db_inserts) {
+          const path = join(__dirname, `../src/schemas/${name}.json`);
+          expect(existsSync(path), `missing: src/schemas/${name}.json`).toBe(true);
+        }
+      });
+
+      it("each schema file is valid JSON", () => {
+        for (const name of ai.db_inserts) {
+          const path = join(__dirname, `../src/schemas/${name}.json`);
+          if (!existsSync(path)) continue;
+          expect(() => JSON.parse(readFileSync(path, "utf-8")), `src/schemas/${name}.json must be valid JSON`).not.toThrow();
+        }
+      });
+    });
+  }
+}
