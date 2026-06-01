@@ -72,7 +72,12 @@ export function suggestNextDate(recurrence, lastScheduledAt) {
   const d = new Date(base);
   if (recurrence === "weekly")  d.setDate(d.getDate() + 7);
   if (recurrence === "monthly") d.setMonth(d.getMonth() + 1);
-  return d.toISOString().slice(0, 16); // "YYYY-MM-DDTHH:MM"
+  const y  = d.getFullYear();
+  const mo = String(d.getMonth() + 1).padStart(2, "0");
+  const dy = String(d.getDate()).padStart(2, "0");
+  const h  = String(d.getHours()).padStart(2, "0");
+  const mi = String(d.getMinutes()).padStart(2, "0");
+  return `${y}-${mo}-${dy}T${h}:${mi}`;
 }
 
 // ── Formatting ────────────────────────────────────────────────────────────────

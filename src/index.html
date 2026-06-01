@@ -520,6 +520,7 @@ function renderMeeting() {
         <h1>${esc(title)}</h1>
         <p style="font-size:.82rem;color:var(--muted);margin-top:2px">${esc(dateStr)}</p>
       </div>
+      ${canManage && !isCompleted ? `<button class="btn btn-ghost btn-sm" id="btn-edit-meeting">Edit</button>` : ""}
     </div>
 
     <div class="meeting-status-bar ${statusBarClass}">
@@ -571,6 +572,7 @@ function renderMeeting() {
     if (currentSeries) navigateTo("series", { series: currentSeries });
     else navigateTo("home");
   });
+  document.getElementById("btn-edit-meeting")?.addEventListener("click", openEditMeetingModal);
   document.getElementById("btn-start-meeting")?.addEventListener("click", () => updateMeetingStatus("in-progress"));
   document.getElementById("btn-end-meeting")?.addEventListener("click", () => updateMeetingStatus("completed"));
   document.getElementById("btn-delete-meeting")?.addEventListener("click", deleteMeeting);
@@ -820,7 +822,7 @@ function openScheduleModal() {
     try {
       await dbq(
         `INSERT INTO meetings (id, group_id, title, scheduled_at, status, created_by, created_at) VALUES ($1,$2,$3,$4,'upcoming',$5,$6)`,
-        [uuid(), currentSeries.id, title, scheduled ? new Date(scheduled).toISOString() : null, HUB_MEMBER?.id ?? "unknown", now()]
+        [uuid(), currentSeries.id, title, scheduled ? scheduled.padEnd(19, ":00") : null, HUB_MEMBER?.id ?? "unknown", now()]
       );
       syncMeetingsToStore().catch((e) => console.error("[agenda] syncMeetingsToStore failed:", e));
       closeModal();
@@ -828,6 +830,55 @@ function openScheduleModal() {
     } catch (e) {
       document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
       btn.disabled = false; btn.textContent = "Schedule";
+    }
+  });
+}
+
+function openEditMeetingModal() {
+  const currentTitle = currentMeeting.title?.trim() ?? "";
+  const currentDate  = currentMeeting.scheduled_at ? currentMeeting.scheduled_at.slice(0, 16) : "";
+  showModal(`
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Edit Meeting</h2>
+        <button class="modal-close" id="modal-close-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-error"></div>
+        <div class="form-group">
+          <label>Title (optional — defaults to series name)</label>
+          <input class="field" id="edit-title" type="text" value="${esc(currentTitle)}" placeholder="${esc(currentSeries?.name ?? "Meeting")}" autofocus />
+        </div>
+        <div class="form-group">
+          <label>Date &amp; Time</label>
+          <input class="field" id="edit-date" type="datetime-local" value="${esc(currentDate)}" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" id="modal-cancel-btn">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="modal-save-btn">Save</button>
+      </div>
+    </div>
+  `);
+  document.getElementById("modal-close-btn")?.addEventListener("click", closeModal);
+  document.getElementById("modal-cancel-btn")?.addEventListener("click", closeModal);
+  document.getElementById("modal-save-btn")?.addEventListener("click", async () => {
+    const btn = document.getElementById("modal-save-btn");
+    btn.disabled = true; btn.textContent = "Saving…";
+    const title     = document.getElementById("edit-title")?.value.trim() || null;
+    const scheduled = document.getElementById("edit-date")?.value || null;
+    try {
+      await dbq(
+        `UPDATE meetings SET title = $1, scheduled_at = $2 WHERE id = $3`,
+        [title, scheduled ? scheduled.padEnd(19, ":00") : null, currentMeeting.id]
+      );
+      currentMeeting = { ...currentMeeting, title, scheduled_at: scheduled ? scheduled.padEnd(19, ":00") : null };
+      syncMeetingsToStore().catch((e) => console.error("[agenda] syncMeetingsToStore failed:", e));
+      closeModal();
+      renderMeeting();
+    } catch (e) {
+      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
+      btn.disabled = false; btn.textContent = "Save";
     }
   });
 }
@@ -994,7 +1045,7 @@ async function syncMeetingsToStore() {
      JOIN meeting_groups mg ON mg.id = m.group_id
      WHERE m.status != 'completed' AND m.scheduled_at IS NOT NULL AND m.scheduled_at >= $1
      ORDER BY m.scheduled_at ASC`,
-    [new Date(new Date().toDateString()).toISOString()]
+    [new Date().toLocaleDateString("en-CA")]
   );
   const events = (rows ?? []).map(m => ({
     id: m.id,
