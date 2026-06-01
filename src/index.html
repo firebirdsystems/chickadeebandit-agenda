@@ -258,6 +258,7 @@ import {
   countOpenActionItems, openActionItems, filterActionItemsByAssignee,
   suggestNextDate, formatDate, formatDateShort, formatDueDate, avatarHtml,
 } from "./logic.js";
+import { hubConfirm } from "/hub-sdk.js";
 
 // ── Runtime globals ───────────────────────────────────────────────────────────
 const CONTEXT    = window.__CONTEXT_URL ?? "";
@@ -947,7 +948,7 @@ async function updateMeetingStatus(status) {
 
 async function deleteMeeting() {
   const title = meetingTitle(currentMeeting, currentSeries);
-  if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
+  if (!await hubConfirm({ message: `Delete "${title}"?`, description: "This cannot be undone.", confirmLabel: "Delete" })) return;
   await dbq(`DELETE FROM action_items WHERE meeting_id = $1`, [currentMeeting.id]);
   await dbq(`DELETE FROM meetings WHERE id = $1`, [currentMeeting.id]);
   syncMeetingsToStore().catch(() => {});
@@ -991,9 +992,9 @@ async function syncMeetingsToStore() {
     `SELECT m.id, m.title, m.scheduled_at, mg.name AS series_name, m.created_by
      FROM meetings m
      JOIN meeting_groups mg ON mg.id = m.group_id
-     WHERE m.status != 'completed' AND m.scheduled_at IS NOT NULL AND m.scheduled_at > $1
+     WHERE m.status != 'completed' AND m.scheduled_at IS NOT NULL AND m.scheduled_at >= $1
      ORDER BY m.scheduled_at ASC`,
-    [new Date().toISOString()]
+    [new Date(new Date().toDateString()).toISOString()]
   );
   const events = (rows ?? []).map(m => ({
     id: m.id,
