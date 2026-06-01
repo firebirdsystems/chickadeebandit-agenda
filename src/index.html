@@ -822,7 +822,7 @@ function openScheduleModal() {
         `INSERT INTO meetings (id, group_id, title, scheduled_at, status, created_by, created_at) VALUES ($1,$2,$3,$4,'upcoming',$5,$6)`,
         [uuid(), currentSeries.id, title, scheduled ? new Date(scheduled).toISOString() : null, HUB_MEMBER?.id ?? "unknown", now()]
       );
-      syncMeetingsToStore().catch(() => {});
+      syncMeetingsToStore().catch((e) => console.error("[agenda] syncMeetingsToStore failed:", e));
       closeModal();
       await navigateTo("series", { series: currentSeries });
     } catch (e) {
@@ -951,7 +951,7 @@ async function deleteMeeting() {
   if (!await hubConfirm({ message: `Delete "${title}"?`, description: "This cannot be undone.", confirmLabel: "Delete" })) return;
   await dbq(`DELETE FROM action_items WHERE meeting_id = $1`, [currentMeeting.id]);
   await dbq(`DELETE FROM meetings WHERE id = $1`, [currentMeeting.id]);
-  syncMeetingsToStore().catch(() => {});
+  syncMeetingsToStore().catch((e) => console.error("[agenda] syncMeetingsToStore failed:", e));
   await navigateTo("series", { series: currentSeries });
 }
 
