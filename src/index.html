@@ -367,11 +367,13 @@ async function navigateTo(newView, opts = {}) {
   if (newView === "home") {
     currentSeries  = null;
     currentMeeting = null;
-    await loadSeries();
     renderHome();
+    loadSeries().then(() => renderHome());
   } else if (newView === "series") {
     currentSeries  = opts.series;
     currentMeeting = null;
+    meetings = [];
+    renderSeries(true);
     await loadMeetings(currentSeries.id);
     renderSeries();
   } else if (newView === "meeting") {
@@ -432,10 +434,10 @@ function seriesCard(s) {
 }
 
 // ── Render: Series ────────────────────────────────────────────────────────────
-function renderSeries() {
+function renderSeries(loading = false) {
   const canManage = HUB_MEMBER && isAdult(HUB_MEMBER);
-  const upcoming  = upcomingMeetings(meetings);
-  const past      = pastMeetings(meetings);
+  const upcoming  = loading ? [] : upcomingMeetings(meetings);
+  const past      = loading ? [] : pastMeetings(meetings);
   const app = document.getElementById("app");
   app.innerHTML = `
     <button class="back-btn" id="btn-back">← Back to series</button>
@@ -446,7 +448,9 @@ function renderSeries() {
       </div>
     </div>
     ${currentSeries.description ? `<p style="color:var(--muted);font-size:.85rem;margin-bottom:14px">${esc(currentSeries.description)}</p>` : ""}
-    ${upcoming.length === 0 && past.length === 0
+    ${loading
+      ? `<div class="empty" style="opacity:0.5">Loading…</div>`
+      : upcoming.length === 0 && past.length === 0
       ? `<div class="empty">No meetings yet.${canManage ? ` Schedule the first one!` : ""}</div>`
       : `
         ${upcoming.length > 0 ? `
@@ -915,15 +919,16 @@ function openAddItemModal() {
     const btn = document.getElementById("modal-save-btn");
     btn.disabled = true; btn.textContent = "Adding…";
     const sortOrder = agendaItems.length;
+    const desc = document.getElementById("item-desc")?.value.trim() || null;
     try {
+      const id = uuid();
+      const created = now();
       await dbq(
         `INSERT INTO agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,'pending',$7)`,
-        [uuid(), currentMeeting.id, title,
-          document.getElementById("item-desc")?.value.trim() || null,
-          HUB_MEMBER?.id ?? "unknown", sortOrder, now()]
+        [id, currentMeeting.id, title, desc, HUB_MEMBER?.id ?? "unknown", sortOrder, created]
       );
+      agendaItems = [...agendaItems, { id, meeting_id: currentMeeting.id, title, description: desc, submitted_by: HUB_MEMBER?.id ?? "unknown", sort_order: sortOrder, status: "pending", created_at: created }];
       closeModal();
-      await loadMeetingDetail(currentMeeting.id);
       renderMeeting();
     } catch (e) {
       document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
@@ -976,12 +981,14 @@ function openAddActionModal(agendaItemId = null) {
     const assignee = document.getElementById("action-assignee")?.value || null;
     const dueVal   = document.getElementById("action-due")?.value || null;
     try {
+      const id = uuid();
+      const created = now();
       await dbq(
         `INSERT INTO action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,'open',$7)`,
-        [uuid(), currentMeeting.id, agendaItemId, title, assignee, dueVal, now()]
+        [id, currentMeeting.id, agendaItemId, title, assignee, dueVal, created]
       );
+      actionItems = [...actionItems, { id, meeting_id: currentMeeting.id, agenda_item_id: agendaItemId, title, assigned_to: assignee, due_date: dueVal, status: "open", created_at: created }];
       closeModal();
-      await loadMeetingDetail(currentMeeting.id);
       renderMeeting();
     } catch (e) {
       document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
@@ -1007,9 +1014,9 @@ async function deleteMeeting() {
 }
 
 async function markItemStatus(itemId, status) {
-  await dbq(`UPDATE agenda_items SET status = $1 WHERE id = $2`, [status, itemId]);
   agendaItems = agendaItems.map(i => i.id === itemId ? { ...i, status } : i);
   renderMeeting();
+  dbq(`UPDATE agenda_items SET status = $1 WHERE id = $2`, [status, itemId]);
 }
 
 async function deleteAgendaItem(itemId) {
@@ -1021,9 +1028,9 @@ async function deleteAgendaItem(itemId) {
 async function toggleActionDone(actionId, done) {
   const status = done ? "done" : "open";
   const completedAt = done ? now() : null;
-  await dbq(`UPDATE action_items SET status = $1, completed_at = $2 WHERE id = $3`, [status, completedAt, actionId]);
   actionItems = actionItems.map(a => a.id === actionId ? { ...a, status, completed_at: completedAt } : a);
   renderMeeting();
+  dbq(`UPDATE action_items SET status = $1, completed_at = $2 WHERE id = $3`, [status, completedAt, actionId]);
 }
 
 async function saveNotes() {
@@ -1070,9 +1077,14 @@ async function handleDeepLink() {
   const { rows } = await dbq(`SELECT * FROM meetings WHERE id = $1`, [meetingId]);
   const meeting = rows[0];
   if (!meeting) return;
-  const { rows: seriesRows } = await dbq(`SELECT * FROM meeting_groups WHERE id = $1`, [meeting.group_id]);
-  currentSeries = seriesRows[0] ?? null;
-  await navigateTo("meeting", { meeting });
+  const [{ rows: seriesRows }] = await Promise.all([
+    dbq(`SELECT * FROM meeting_groups WHERE id = $1`, [meeting.group_id]),
+    loadMeetingDetail(meetingId),
+  ]);
+  currentSeries  = seriesRows[0] ?? null;
+  currentMeeting = meeting;
+  view = "meeting";
+  renderMeeting();
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
