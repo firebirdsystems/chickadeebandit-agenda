@@ -1058,15 +1058,16 @@ async function syncMeetingsToStore() {
     id: m.id,
     title: (m.title?.trim()) || m.series_name || "Meeting",
     description: `${m.series_name} meeting`,
-    start_at: m.scheduled_at,
-    end_at: m.scheduled_at,
+    start: m.scheduled_at,
+    end: m.scheduled_at,
     all_day: false,
-    family_member_id: m.created_by ?? null,
+    member_ids: m.created_by ? [m.created_by] : [],
+    source_label: "Agenda",
   }));
   await fetch(STORE_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ key: "meetings", value: JSON.stringify(events) }),
+    body: JSON.stringify({ key: "calendar_events", value: JSON.stringify(events) }),
   }).catch(() => {});
 }
 

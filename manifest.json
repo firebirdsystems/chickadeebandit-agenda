@@ -12,7 +12,7 @@
     "reads": ["family.members", "family.groups"],
     "writes": []
   },
-  "exports": ["meetings"],
+  "exports": ["calendar_events"],
   "permissions": {
     "default_audience": "everyone",
     "requires_approval": false
