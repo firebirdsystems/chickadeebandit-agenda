@@ -120,13 +120,13 @@ async function dbq(sql, params = []) {
 async function init() {
   const [{ rows: upcoming }, { rows: actions }] = await Promise.all([
     dbq(`SELECT m.*, mg.name AS series_name
-         FROM meetings m
-         LEFT JOIN meeting_groups mg ON mg.id = m.group_id
+         FROM app_agenda__meetings m
+         LEFT JOIN app_agenda__meeting_groups mg ON mg.id = m.group_id
          WHERE m.status IN ('upcoming','in-progress')
          ORDER BY m.scheduled_at NULLS LAST, m.created_at ASC
          LIMIT 1`),
     dbq(`SELECT ai.*, fm_name.name AS assignee_name
-         FROM action_items ai
+         FROM app_agenda__action_items ai
          LEFT JOIN (SELECT id, name FROM family_members) fm_name ON fm_name.id = ai.assigned_to
          WHERE ai.status = 'open'
          ORDER BY ai.due_date NULLS LAST, ai.created_at ASC
@@ -160,7 +160,7 @@ async function init() {
   const actionsList = document.getElementById("actions-list");
   const countEl = document.getElementById("action-count");
 
-  const { rows: total } = await dbq(`SELECT COUNT(*) AS n FROM action_items WHERE status = 'open'`);
+  const { rows: total } = await dbq(`SELECT COUNT(*) AS n FROM app_agenda__action_items WHERE status = 'open'`);
   const openCount = parseInt(total[0]?.n ?? 0, 10);
   if (countEl) countEl.textContent = openCount > 0 ? `${openCount} open` : "";
 
