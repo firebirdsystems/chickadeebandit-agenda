@@ -585,9 +585,9 @@ function renderMeeting() {
   document.getElementById("btn-save-notes")?.addEventListener("click", saveNotes);
 
   agendaItems.forEach(i => {
-    document.getElementById(`item-discuss-${i.id}`)?.addEventListener("click", () => markItemStatus(i.id, "discussed"));
-    document.getElementById(`item-table-${i.id}`)?.addEventListener("click", () => markItemStatus(i.id, "tabled"));
-    document.getElementById(`item-reopen-${i.id}`)?.addEventListener("click", () => markItemStatus(i.id, "pending"));
+    document.getElementById(`item-discuss-${i.id}`)?.addEventListener("click", () => openMarkItemModal(i, "discussed"));
+    document.getElementById(`item-table-${i.id}`)?.addEventListener("click", () => openMarkItemModal(i, "tabled"));
+    document.getElementById(`item-reopen-${i.id}`)?.addEventListener("click", () => markItemStatus(i.id, "pending", null));
     document.getElementById(`item-delete-${i.id}`)?.addEventListener("click", () => deleteAgendaItem(i.id));
   });
 
@@ -617,6 +617,7 @@ function agendaItemRow(item, canAct) {
       <div class="agenda-row-main">
         <div class="agenda-row-title">${esc(item.title)}</div>
         ${item.description ? `<div class="agenda-row-desc">${esc(item.description)}</div>` : ""}
+        ${item.resolution ? `<div class="agenda-row-desc" style="font-style:italic;color:var(--text)">→ ${esc(item.resolution)}</div>` : ""}
         <div style="font-size:.75rem;color:var(--muted);margin-top:3px">
           Submitted by ${esc(submitter?.name ?? "Unknown")}
         </div>
@@ -927,7 +928,7 @@ function openAddItemModal() {
         `INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,'pending',$7)`,
         [id, currentMeeting.id, title, desc, HUB_MEMBER?.id ?? "unknown", sortOrder, created]
       );
-      agendaItems = [...agendaItems, { id, meeting_id: currentMeeting.id, title, description: desc, submitted_by: HUB_MEMBER?.id ?? "unknown", sort_order: sortOrder, status: "pending", created_at: created }];
+      agendaItems = [...agendaItems, { id, meeting_id: currentMeeting.id, title, description: desc, resolution: null, submitted_by: HUB_MEMBER?.id ?? "unknown", sort_order: sortOrder, status: "pending", created_at: created }];
       closeModal();
       renderMeeting();
     } catch (e) {
@@ -1013,10 +1014,40 @@ async function deleteMeeting() {
   await navigateTo("series", { series: currentSeries });
 }
 
-async function markItemStatus(itemId, status) {
-  agendaItems = agendaItems.map(i => i.id === itemId ? { ...i, status } : i);
+async function markItemStatus(itemId, status, resolution) {
+  agendaItems = agendaItems.map(i => i.id === itemId ? { ...i, status, resolution: resolution ?? i.resolution } : i);
   renderMeeting();
-  dbq(`UPDATE app_agenda__agenda_items SET status = $1 WHERE id = $2`, [status, itemId]);
+  dbq(`UPDATE app_agenda__agenda_items SET status = $1, resolution = $2 WHERE id = $3`, [status, resolution ?? null, itemId]);
+}
+
+function openMarkItemModal(item, status) {
+  const label = status === "discussed" ? "Mark as Discussed" : "Table Item";
+  showModal(`
+    <div class="modal">
+      <div class="modal-header">
+        <h2>${esc(label)}</h2>
+        <button class="modal-close" id="modal-close-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:.85rem;color:var(--muted);margin-bottom:12px">${esc(item.title)}</p>
+        <div class="form-group">
+          <label>Resolution / notes (optional)</label>
+          <textarea class="field" id="item-resolution" rows="3" placeholder="What was decided or why was this tabled?">${esc(item.resolution ?? "")}</textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" id="modal-cancel-btn">Cancel</button>
+        <button class="btn btn-primary btn-sm" id="modal-save-btn">${esc(label)}</button>
+      </div>
+    </div>
+  `);
+  document.getElementById("modal-close-btn")?.addEventListener("click", closeModal);
+  document.getElementById("modal-cancel-btn")?.addEventListener("click", closeModal);
+  document.getElementById("modal-save-btn")?.addEventListener("click", async () => {
+    const resolution = document.getElementById("item-resolution")?.value.trim() || null;
+    closeModal();
+    await markItemStatus(item.id, status, resolution);
+  });
 }
 
 async function deleteAgendaItem(itemId) {
