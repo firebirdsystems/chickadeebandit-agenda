@@ -7,7 +7,17 @@ on:
     types: [published]
 
 jobs:
+  # Gate: validate this app against the hub's manifest/migration/ai_access
+  # contract before it can build or publish. Validators live in the hub repo
+  # (single source of truth). See chickadeebandit/.github/workflows/app-contract-reusable.yml
+  contract:
+    uses: firebirdsystems/chickadeebandit/.github/workflows/app-contract-reusable.yml@main
+    # Hub repo is private — pass a token (org secret) with read access to it.
+    secrets:
+      hub-token: ${{ secrets.HUB_CHECKOUT_TOKEN }}
+
   build-and-release:
+    needs: contract
     runs-on: ubuntu-latest
     permissions:
       contents: write

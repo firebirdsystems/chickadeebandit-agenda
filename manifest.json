@@ -17,6 +17,32 @@
     "default_audience": "everyone",
     "requires_approval": false
   },
+  "row_policies": {
+    "meetings": {
+      "kind": "owner_or_visibility",
+      "member_column": "created_by",
+      "visibility_column": "audience",
+      "everyone_values": ["everyone"],
+      "adult_values": ["adults"],
+      "write_owner_only": false
+    },
+    "agenda_items": {
+      "kind": "owner_or_visibility",
+      "member_column": "submitted_by",
+      "visibility_column": "audience",
+      "everyone_values": ["everyone"],
+      "adult_values": ["adults"],
+      "write_owner_only": false
+    },
+    "action_items": {
+      "kind": "owner_or_visibility",
+      "member_column": "created_by",
+      "visibility_column": "audience",
+      "everyone_values": ["everyone"],
+      "adult_values": ["adults"],
+      "write_owner_only": false
+    }
+  },
   "resource_limits": {
     "max_db_bytes": 10485760
   },

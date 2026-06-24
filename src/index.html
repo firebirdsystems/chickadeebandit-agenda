@@ -315,7 +315,7 @@ async function loadSeries() {
 
 async function loadMeetings(seriesId) {
   const { rows } = await dbq(
-    `SELECT * FROM app_agenda__meetings WHERE group_id = $1 ORDER BY created_at DESC`,
+    `SELECT * FROM app_agenda__meetings WHERE group_id = ? ORDER BY created_at DESC`,
     [seriesId]
   );
   meetings = rows;
@@ -323,8 +323,8 @@ async function loadMeetings(seriesId) {
 
 async function loadMeetingDetail(meetingId) {
   const [{ rows: ai }, { rows: act }] = await Promise.all([
-    dbq(`SELECT * FROM app_agenda__agenda_items WHERE meeting_id = $1 ORDER BY sort_order ASC, created_at ASC`, [meetingId]),
-    dbq(`SELECT * FROM app_agenda__action_items WHERE meeting_id = $1 ORDER BY created_at ASC`, [meetingId]),
+    dbq(`SELECT * FROM app_agenda__agenda_items WHERE meeting_id = ? ORDER BY sort_order ASC, created_at ASC`, [meetingId]),
+    dbq(`SELECT * FROM app_agenda__action_items WHERE meeting_id = ? ORDER BY created_at ASC`, [meetingId]),
   ]);
   agendaItems = ai;
   actionItems = act;
@@ -351,14 +351,22 @@ function audienceLabel(audience) {
 }
 
 function audienceOptions(selected = "everyone") {
-  const base = [
-    `<option value="everyone" ${selected === "everyone" ? "selected" : ""}>Everyone</option>`,
-    `<option value="adults"   ${selected === "adults"   ? "selected" : ""}>Adults only</option>`,
-  ];
-  const groupOpts = hubGroups.map(g =>
-    `<option value="${esc(g.id)}" ${selected === g.id ? "selected" : ""}>${esc(g.name)}</option>`
-  );
-  return [...base, ...groupOpts].join("");
+  // Only "everyone" and "adults" are offered: these are the audiences the backend
+  // row policies can enforce. (Per-group targeting cannot be expressed by the row
+  // policy engine, so it is no longer offered; a legacy group audience is treated
+  // as "adults" for new content via enforceableAudience.)
+  const sel = selected === "everyone" ? "everyone" : "adults";
+  return [
+    `<option value="everyone" ${sel === "everyone" ? "selected" : ""}>Everyone</option>`,
+    `<option value="adults"   ${sel === "adults"   ? "selected" : ""}>Adults only</option>`,
+  ].join("");
+}
+
+// Map any series audience to the enforceable set: "everyone" stays everyone;
+// "adults" and any legacy group id become "adults" (restricted). Stamped onto new
+// meetings/items so the row policy can gate reads.
+function enforceableAudience(a) {
+  return (!a || a === "everyone") ? "everyone" : "adults";
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────
@@ -769,7 +777,7 @@ function openNewSeriesModal() {
     btn.disabled = true; btn.textContent = "Creating…";
     try {
       await dbq(
-        `INSERT INTO app_agenda__meeting_groups (id, name, description, recurrence, audience, created_by, created_at) VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+        `INSERT INTO app_agenda__meeting_groups (id, name, description, recurrence, audience, created_by, created_at) VALUES (?,?,?,?,?,?,?)`,
         [uuid(), name,
           document.getElementById("new-series-desc")?.value.trim() || null,
           document.getElementById("new-series-recurrence")?.value || null,
@@ -826,8 +834,8 @@ function openScheduleModal() {
     const scheduled = document.getElementById("sched-date")?.value || null;
     try {
       await dbq(
-        `INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, created_by, created_at) VALUES ($1,$2,$3,$4,'upcoming',$5,$6)`,
-        [uuid(), currentSeries.id, title, scheduled ? scheduled.padEnd(19, ":00") : null, HUB_MEMBER?.id ?? "unknown", now()]
+        `INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, audience, created_by, created_at) VALUES (?,?,?,?,'upcoming',?,?,?)`,
+        [uuid(), currentSeries.id, title, scheduled ? scheduled.padEnd(19, ":00") : null, enforceableAudience(currentSeries.audience), HUB_MEMBER?.id ?? "unknown", now()]
       );
       syncMeetingsToStore().catch((e) => console.error("[agenda] syncMeetingsToStore failed:", e));
       closeModal();
@@ -874,7 +882,7 @@ function openEditMeetingModal() {
     const scheduled = document.getElementById("edit-date")?.value || null;
     try {
       await dbq(
-        `UPDATE app_agenda__meetings SET title = $1, scheduled_at = $2 WHERE id = $3`,
+        `UPDATE app_agenda__meetings SET title = ?, scheduled_at = ? WHERE id = ?`,
         [title, scheduled ? scheduled.padEnd(19, ":00") : null, currentMeeting.id]
       );
       currentMeeting = { ...currentMeeting, title, scheduled_at: scheduled ? scheduled.padEnd(19, ":00") : null };
@@ -924,11 +932,12 @@ function openAddItemModal() {
     try {
       const id = uuid();
       const created = now();
+      const itemAudience = currentMeeting.audience ?? "everyone";
       await dbq(
-        `INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,'pending',$7)`,
-        [id, currentMeeting.id, title, desc, HUB_MEMBER?.id ?? "unknown", sortOrder, created]
+        `INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, audience, created_at) VALUES (?,?,?,?,?,?,'pending',?,?)`,
+        [id, currentMeeting.id, title, desc, HUB_MEMBER?.id ?? "unknown", sortOrder, itemAudience, created]
       );
-      agendaItems = [...agendaItems, { id, meeting_id: currentMeeting.id, title, description: desc, resolution: null, submitted_by: HUB_MEMBER?.id ?? "unknown", sort_order: sortOrder, status: "pending", created_at: created }];
+      agendaItems = [...agendaItems, { id, meeting_id: currentMeeting.id, title, description: desc, resolution: null, submitted_by: HUB_MEMBER?.id ?? "unknown", sort_order: sortOrder, status: "pending", audience: itemAudience, created_at: created }];
       closeModal();
       renderMeeting();
     } catch (e) {
@@ -984,11 +993,12 @@ function openAddActionModal(agendaItemId = null) {
     try {
       const id = uuid();
       const created = now();
+      const actionAudience = currentMeeting.audience ?? "everyone";
       await dbq(
-        `INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, created_at) VALUES ($1,$2,$3,$4,$5,$6,'open',$7)`,
-        [id, currentMeeting.id, agendaItemId, title, assignee, dueVal, created]
+        `INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, audience, created_by, created_at) VALUES (?,?,?,?,?,?,'open',?,?,?)`,
+        [id, currentMeeting.id, agendaItemId, title, assignee, dueVal, actionAudience, HUB_MEMBER?.id ?? "unknown", created]
       );
-      actionItems = [...actionItems, { id, meeting_id: currentMeeting.id, agenda_item_id: agendaItemId, title, assigned_to: assignee, due_date: dueVal, status: "open", created_at: created }];
+      actionItems = [...actionItems, { id, meeting_id: currentMeeting.id, agenda_item_id: agendaItemId, title, assigned_to: assignee, due_date: dueVal, status: "open", audience: actionAudience, created_by: HUB_MEMBER?.id ?? "unknown", created_at: created }];
       closeModal();
       renderMeeting();
     } catch (e) {
@@ -1000,7 +1010,7 @@ function openAddActionModal(agendaItemId = null) {
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 async function updateMeetingStatus(status) {
-  await dbq(`UPDATE app_agenda__meetings SET status = $1 WHERE id = $2`, [status, currentMeeting.id]);
+  await dbq(`UPDATE app_agenda__meetings SET status = ? WHERE id = ?`, [status, currentMeeting.id]);
   currentMeeting = { ...currentMeeting, status };
   renderMeeting();
 }
@@ -1008,8 +1018,8 @@ async function updateMeetingStatus(status) {
 async function deleteMeeting() {
   const title = meetingTitle(currentMeeting, currentSeries);
   if (!await hubConfirm({ message: `Delete "${title}"?`, description: "This cannot be undone.", confirmLabel: "Delete" })) return;
-  await dbq(`DELETE FROM app_agenda__action_items WHERE meeting_id = $1`, [currentMeeting.id]);
-  await dbq(`DELETE FROM app_agenda__meetings WHERE id = $1`, [currentMeeting.id]);
+  await dbq(`DELETE FROM app_agenda__action_items WHERE meeting_id = ?`, [currentMeeting.id]);
+  await dbq(`DELETE FROM app_agenda__meetings WHERE id = ?`, [currentMeeting.id]);
   syncMeetingsToStore().catch((e) => console.error("[agenda] syncMeetingsToStore failed:", e));
   await navigateTo("series", { series: currentSeries });
 }
@@ -1017,7 +1027,7 @@ async function deleteMeeting() {
 async function markItemStatus(itemId, status, resolution) {
   agendaItems = agendaItems.map(i => i.id === itemId ? { ...i, status, resolution: resolution ?? i.resolution } : i);
   renderMeeting();
-  dbq(`UPDATE app_agenda__agenda_items SET status = $1, resolution = $2 WHERE id = $3`, [status, resolution ?? null, itemId]);
+  dbq(`UPDATE app_agenda__agenda_items SET status = ?, resolution = ? WHERE id = ?`, [status, resolution ?? null, itemId]);
 }
 
 function openMarkItemModal(item, status) {
@@ -1051,7 +1061,7 @@ function openMarkItemModal(item, status) {
 }
 
 async function deleteAgendaItem(itemId) {
-  await dbq(`DELETE FROM app_agenda__agenda_items WHERE id = $1`, [itemId]);
+  await dbq(`DELETE FROM app_agenda__agenda_items WHERE id = ?`, [itemId]);
   agendaItems = agendaItems.filter(i => i.id !== itemId);
   renderMeeting();
 }
@@ -1061,14 +1071,14 @@ async function toggleActionDone(actionId, done) {
   const completedAt = done ? now() : null;
   actionItems = actionItems.map(a => a.id === actionId ? { ...a, status, completed_at: completedAt } : a);
   renderMeeting();
-  dbq(`UPDATE app_agenda__action_items SET status = $1, completed_at = $2 WHERE id = $3`, [status, completedAt, actionId]);
+  dbq(`UPDATE app_agenda__action_items SET status = ?, completed_at = ? WHERE id = ?`, [status, completedAt, actionId]);
 }
 
 async function saveNotes() {
   const notes = document.getElementById("notes-field")?.value ?? "";
   const status = document.getElementById("notes-status");
   if (status) status.textContent = "Saving…";
-  await dbq(`UPDATE app_agenda__meetings SET notes = $1 WHERE id = $2`, [notes, currentMeeting.id]);
+  await dbq(`UPDATE app_agenda__meetings SET notes = ? WHERE id = ?`, [notes, currentMeeting.id]);
   currentMeeting = { ...currentMeeting, notes };
   if (status) { status.textContent = "Saved"; setTimeout(() => { if (status) status.textContent = ""; }, 2000); }
 }
@@ -1081,7 +1091,7 @@ async function syncMeetingsToStore() {
     `SELECT m.id, m.title, m.scheduled_at, mg.name AS series_name, m.created_by
      FROM app_agenda__meetings m
      JOIN app_agenda__meeting_groups mg ON mg.id = m.group_id
-     WHERE m.status != 'completed' AND m.scheduled_at IS NOT NULL AND m.scheduled_at >= $1
+     WHERE m.status != 'completed' AND m.scheduled_at IS NOT NULL AND m.scheduled_at >= ?
      ORDER BY m.scheduled_at ASC`,
     [new Date().toLocaleDateString("en-CA")]
   );
@@ -1106,11 +1116,11 @@ async function syncMeetingsToStore() {
 async function handleDeepLink() {
   const meetingId = new URLSearchParams(window.location.search).get("meetingId");
   if (!meetingId) return;
-  const { rows } = await dbq(`SELECT * FROM app_agenda__meetings WHERE id = $1`, [meetingId]);
+  const { rows } = await dbq(`SELECT * FROM app_agenda__meetings WHERE id = ?`, [meetingId]);
   const meeting = rows[0];
   if (!meeting) return;
   const [{ rows: seriesRows }] = await Promise.all([
-    dbq(`SELECT * FROM app_agenda__meeting_groups WHERE id = $1`, [meeting.group_id]),
+    dbq(`SELECT * FROM app_agenda__meeting_groups WHERE id = ?`, [meeting.group_id]),
     loadMeetingDetail(meetingId),
   ]);
   currentSeries  = seriesRows[0] ?? null;
