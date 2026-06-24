@@ -31,7 +31,7 @@ jobs:
           cache-dependency-path: hub/package-lock.json
       - name: Install hub deps
         working-directory: hub
-        run: npm ci
+        run: npm install --no-audit --no-fund
       - name: Run app contract suite
         working-directory: hub
         env:
