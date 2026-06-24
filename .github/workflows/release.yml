@@ -9,8 +9,9 @@ on:
 jobs:
   # Gate: validate this app against the hub's manifest/migration/ai_access
   # contract before it can build or publish. Public repos can't call a private
-  # repo's reusable workflow, so we run the hub's validators inline — the hub is
-  # checked out with HUB_CHECKOUT_TOKEN (a private-repo checkout, which IS allowed).
+  # repo's reusable workflow, so we run the hub's validators directly — installing
+  # only the tiny standalone runner (vitest + better-sqlite3), NOT the full hub
+  # monorepo. See firebirdsystems/chickadeebandit packages/hub/contract-ci.
   contract:
     runs-on: ubuntu-latest
     steps:
@@ -27,16 +28,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
-          cache-dependency-path: hub/package-lock.json
-      - name: Install hub deps
-        working-directory: hub
+      - name: Install contract runner (vitest + better-sqlite3 only)
+        working-directory: hub/packages/hub/contract-ci
         run: npm install --no-audit --no-fund
       - name: Run app contract suite
-        working-directory: hub
+        working-directory: hub/packages/hub/contract-ci
         env:
           CB_APPS_DIR: ${{ github.workspace }}/app-src
-        run: npm run -w @chickadee/hub apps-contract
+        run: npm run contract
 
   build-and-release:
     needs: contract
