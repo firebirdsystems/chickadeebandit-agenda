@@ -103,7 +103,8 @@
 <script type="module">
 import { esc, formatDate } from "./logic.js";
 
-const DB = window.__DB_URL ?? "";
+const DB      = window.__DB_URL      ?? "";
+const CONTEXT = window.__CONTEXT_URL ?? "";
 
 async function dbq(sql, params = []) {
   if (!DB) return { rows: [] };
@@ -117,20 +118,33 @@ async function dbq(sql, params = []) {
   return json;
 }
 
+// Resolve assignee names from the hub context — app SQL is scoped to the app's
+// own tables, so `family_members` cannot be joined in `dbq`.
+async function loadMemberMap() {
+  if (!CONTEXT) return {};
+  try {
+    const res = await fetch(`${CONTEXT}?keys=family.members`);
+    const data = await res.json();
+    return Object.fromEntries((data["family.members"] ?? []).map(m => [m.id, m]));
+  } catch {
+    return {};
+  }
+}
+
 async function init() {
-  const [{ rows: upcoming }, { rows: actions }] = await Promise.all([
+  const [{ rows: upcoming }, { rows: actions }, memberMap] = await Promise.all([
     dbq(`SELECT m.*, mg.name AS series_name
          FROM app_agenda__meetings m
          LEFT JOIN app_agenda__meeting_groups mg ON mg.id = m.group_id
          WHERE m.status IN ('upcoming','in-progress')
          ORDER BY m.scheduled_at NULLS LAST, m.created_at ASC
          LIMIT 1`),
-    dbq(`SELECT ai.*, fm_name.name AS assignee_name
+    dbq(`SELECT ai.*
          FROM app_agenda__action_items ai
-         LEFT JOIN (SELECT id, name FROM family_members) fm_name ON fm_name.id = ai.assigned_to
          WHERE ai.status = 'open'
          ORDER BY ai.due_date NULLS LAST, ai.created_at ASC
          LIMIT 5`),
+    loadMemberMap(),
   ]);
 
   // Next meeting
@@ -167,13 +181,16 @@ async function init() {
   if (actions.length === 0) {
     actionsList.innerHTML = `<div class="empty-msg">No open actions</div>`;
   } else {
-    actionsList.innerHTML = actions.map(a => `
+    actionsList.innerHTML = actions.map(a => {
+      const assigneeName = a.assigned_to ? memberMap[a.assigned_to]?.name : null;
+      return `
       <div class="action-row">
         <div class="action-dot"></div>
         <div class="action-title">${esc(a.title)}</div>
-        ${a.assignee_name ? `<div class="action-assignee">${esc(a.assignee_name)}</div>` : ""}
+        ${assigneeName ? `<div class="action-assignee">${esc(assigneeName)}</div>` : ""}
       </div>
-    `).join("");
+    `;
+    }).join("");
   }
 }
 

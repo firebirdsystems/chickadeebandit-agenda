@@ -1019,6 +1019,7 @@ async function deleteMeeting() {
   const title = meetingTitle(currentMeeting, currentSeries);
   if (!await hubConfirm({ message: `Delete "${title}"?`, description: "This cannot be undone.", confirmLabel: "Delete" })) return;
   await dbq(`DELETE FROM app_agenda__action_items WHERE meeting_id = ?`, [currentMeeting.id]);
+  await dbq(`DELETE FROM app_agenda__agenda_items WHERE meeting_id = ?`, [currentMeeting.id]);
   await dbq(`DELETE FROM app_agenda__meetings WHERE id = ?`, [currentMeeting.id]);
   syncMeetingsToStore().catch((e) => console.error("[agenda] syncMeetingsToStore failed:", e));
   await navigateTo("series", { series: currentSeries });

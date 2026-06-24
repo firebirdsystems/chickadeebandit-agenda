@@ -1,7 +1,7 @@
 {
   "id": "agenda",
   "name": "Agenda",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Run structured meetings for your household or organization. Collect agenda items, track action items, and capture notes.",
   "entrypoint": "index.html",
   "runtime": "static",
@@ -18,6 +18,14 @@
     "requires_approval": false
   },
   "row_policies": {
+    "meeting_groups": {
+      "kind": "owner_or_visibility",
+      "member_column": "created_by",
+      "visibility_column": "audience",
+      "everyone_values": ["everyone"],
+      "adult_values": ["adults"],
+      "write_owner_only": false
+    },
     "meetings": {
       "kind": "owner_or_visibility",
       "member_column": "created_by",
@@ -41,6 +49,11 @@
       "everyone_values": ["everyone"],
       "adult_values": ["adults"],
       "write_owner_only": false
+    }
+  },
+  "store_acls": {
+    "calendar_events": {
+      "write": { "require_role": "adult" }
     }
   },
   "resource_limits": {
