@@ -8,13 +8,35 @@ on:
 
 jobs:
   # Gate: validate this app against the hub's manifest/migration/ai_access
-  # contract before it can build or publish. Validators live in the hub repo
-  # (single source of truth). See chickadeebandit/.github/workflows/app-contract-reusable.yml
+  # contract before it can build or publish. Public repos can't call a private
+  # repo's reusable workflow, so we run the hub's validators inline — the hub is
+  # checked out with HUB_CHECKOUT_TOKEN (a private-repo checkout, which IS allowed).
   contract:
-    uses: firebirdsystems/chickadeebandit/.github/workflows/app-contract-reusable.yml@main
-    # Hub repo is private — pass a token (org secret) with read access to it.
-    secrets:
-      hub-token: ${{ secrets.HUB_CHECKOUT_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out this app
+        uses: actions/checkout@v4
+        with:
+          path: app-src/app
+      - name: Check out hub (validators — private repo, via token)
+        uses: actions/checkout@v4
+        with:
+          repository: firebirdsystems/chickadeebandit
+          token: ${{ secrets.HUB_CHECKOUT_TOKEN }}
+          path: hub
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: hub/package-lock.json
+      - name: Install hub deps
+        working-directory: hub
+        run: npm ci
+      - name: Run app contract suite
+        working-directory: hub
+        env:
+          CB_APPS_DIR: ${{ github.workspace }}/app-src
+        run: npm run -w @chickadee/hub apps-contract
 
   build-and-release:
     needs: contract
