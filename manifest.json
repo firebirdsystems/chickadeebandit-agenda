@@ -24,7 +24,7 @@
       "visibility_column": "audience",
       "everyone_values": ["everyone"],
       "adult_values": ["adults"],
-      "write_owner_only": false
+      "write_owner_only": true
     },
     "meetings": {
       "kind": "owner_or_visibility",
