@@ -723,6 +723,9 @@ function showModal(html) {
   div.innerHTML = html;
   div.addEventListener("click", (e) => { if (e.target === div) closeModal(); });
   document.body.appendChild(div);
+  // Programmatic focus works inside cross-origin iframes (unlike the autofocus
+  // attribute, which the browser blocks) because it rides the user's click gesture.
+  div.querySelector("[data-autofocus]")?.focus();
 }
 
 function closeModal() {
@@ -740,7 +743,7 @@ function openNewSeriesModal() {
         <div id="modal-error"></div>
         <div class="form-group">
           <label>Name</label>
-          <input class="field" id="new-series-name" type="text" placeholder="e.g. Weekly Check-in, Finance Committee" autofocus />
+          <input class="field" id="new-series-name" type="text" placeholder="e.g. Weekly Check-in, Finance Committee" data-autofocus />
         </div>
         <div class="form-group">
           <label>Description (optional)</label>
@@ -860,7 +863,7 @@ function openEditMeetingModal() {
         <div id="modal-error"></div>
         <div class="form-group">
           <label>Title (optional — defaults to series name)</label>
-          <input class="field" id="edit-title" type="text" value="${esc(currentTitle)}" placeholder="${esc(currentSeries?.name ?? "Meeting")}" autofocus />
+          <input class="field" id="edit-title" type="text" value="${esc(currentTitle)}" placeholder="${esc(currentSeries?.name ?? "Meeting")}" data-autofocus />
         </div>
         <div class="form-group">
           <label>Date &amp; Time</label>
@@ -907,7 +910,7 @@ function openAddItemModal() {
         <div id="modal-error"></div>
         <div class="form-group">
           <label>Title</label>
-          <input class="field" id="item-title" type="text" placeholder="What needs to be discussed?" autofocus />
+          <input class="field" id="item-title" type="text" placeholder="What needs to be discussed?" data-autofocus />
         </div>
         <div class="form-group">
           <label>Description (optional)</label>
@@ -961,7 +964,7 @@ function openAddActionModal(agendaItemId = null) {
         <div id="modal-error"></div>
         <div class="form-group">
           <label>Title</label>
-          <input class="field" id="action-title" type="text" placeholder="What needs to be done?" autofocus />
+          <input class="field" id="action-title" type="text" placeholder="What needs to be done?" data-autofocus />
         </div>
         <div class="form-group">
           <label>Assigned to (optional)</label>
