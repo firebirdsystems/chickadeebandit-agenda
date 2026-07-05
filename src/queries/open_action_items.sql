@@ -11,5 +11,5 @@ FROM app_agenda__action_items a
 JOIN app_agenda__meetings m
   ON m.id = a.meeting_id
 WHERE a.status       = 'open'
-ORDER BY a.due_date NULLS LAST, a.created_at
+ORDER BY (a.due_date IS NULL), a.due_date, a.created_at
 LIMIT 100

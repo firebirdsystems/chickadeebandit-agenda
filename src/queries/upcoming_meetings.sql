@@ -11,5 +11,5 @@ JOIN app_agenda__meeting_groups g
   ON g.id = m.group_id
 WHERE m.status       = 'upcoming'
   AND (m.scheduled_at IS NULL OR m.scheduled_at >= datetime('now'))
-ORDER BY m.scheduled_at NULLS LAST
+ORDER BY (m.scheduled_at IS NULL), m.scheduled_at
 LIMIT 50
