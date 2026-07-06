@@ -24,7 +24,8 @@
       "visibility_column": "audience",
       "everyone_values": ["everyone"],
       "adult_values": ["adults"],
-      "write_owner_only": true
+      "write_owner_only": true,
+      "update_forbidden_columns": ["audience", "created_by", "created_at"]
     },
     "meetings": {
       "kind": "owner_or_visibility",
@@ -32,7 +33,9 @@
       "visibility_column": "audience",
       "everyone_values": ["everyone"],
       "adult_values": ["adults"],
-      "write_owner_only": false
+      "write_owner_only": false,
+      "frozen_when": { "status_column": "status", "locked_values": ["completed"] },
+      "update_forbidden_columns": ["audience", "group_id", "created_by", "created_at"]
     },
     "agenda_items": {
       "kind": "owner_or_visibility",
@@ -40,7 +43,8 @@
       "visibility_column": "audience",
       "everyone_values": ["everyone"],
       "adult_values": ["adults"],
-      "write_owner_only": false
+      "write_owner_only": false,
+      "update_forbidden_columns": ["audience", "meeting_id", "submitted_by", "created_at"]
     },
     "action_items": {
       "kind": "owner_or_visibility",
@@ -48,7 +52,8 @@
       "visibility_column": "audience",
       "everyone_values": ["everyone"],
       "adult_values": ["adults"],
-      "write_owner_only": false
+      "write_owner_only": false,
+      "update_forbidden_columns": ["audience", "meeting_id", "created_by", "created_at"]
     }
   },
   "store_acls": {

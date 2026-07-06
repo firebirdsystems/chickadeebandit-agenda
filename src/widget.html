@@ -132,18 +132,22 @@ async function loadMemberMap() {
 }
 
 async function init() {
-  const [{ rows: upcoming }, { rows: actions }, memberMap] = await Promise.all([
+  // (col IS NULL) rather than NULLS LAST: the hub's SQL rewriter cannot parse
+  // NULLS LAST, and unparseable statements against policy-governed tables are
+  // rejected outright.
+  const [{ rows: upcoming }, { rows: actions }, { rows: total }, memberMap] = await Promise.all([
     dbq(`SELECT m.*, mg.name AS series_name
          FROM app_agenda__meetings m
          LEFT JOIN app_agenda__meeting_groups mg ON mg.id = m.group_id
          WHERE m.status IN ('upcoming','in-progress')
-         ORDER BY m.scheduled_at NULLS LAST, m.created_at ASC
+         ORDER BY (m.scheduled_at IS NULL), m.scheduled_at, m.created_at ASC
          LIMIT 1`),
     dbq(`SELECT ai.*
          FROM app_agenda__action_items ai
          WHERE ai.status = 'open'
-         ORDER BY ai.due_date NULLS LAST, ai.created_at ASC
+         ORDER BY (ai.due_date IS NULL), ai.due_date, ai.created_at ASC
          LIMIT 5`),
+    dbq(`SELECT COUNT(*) AS n FROM app_agenda__action_items WHERE status = 'open'`),
     loadMemberMap(),
   ]);
 
@@ -174,7 +178,6 @@ async function init() {
   const actionsList = document.getElementById("actions-list");
   const countEl = document.getElementById("action-count");
 
-  const { rows: total } = await dbq(`SELECT COUNT(*) AS n FROM app_agenda__action_items WHERE status = 'open'`);
   const openCount = parseInt(total[0]?.n ?? 0, 10);
   if (countEl) countEl.textContent = openCount > 0 ? `${openCount} open` : "";
 

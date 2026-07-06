@@ -258,7 +258,7 @@ import {
   countOpenActionItems, openActionItems, filterActionItemsByAssignee,
   suggestNextDate, formatDate, formatDateShort, formatDueDate, avatarHtml,
 } from "./logic.js";
-import { hubConfirm } from "/hub-sdk.js";
+import { hubConfirm, hubAlert } from "/hub-sdk.js";
 
 // ── Runtime globals ───────────────────────────────────────────────────────────
 const CONTEXT    = window.__CONTEXT_URL ?? "";
@@ -331,13 +331,16 @@ async function loadMeetingDetail(meetingId) {
 }
 
 async function loadAllOpenActions() {
+  // (due_date IS NULL) rather than NULLS LAST: the hub's SQL rewriter cannot
+  // parse NULLS LAST, and unparseable statements against policy-governed
+  // tables are rejected outright.
   const { rows } = await dbq(
     `SELECT ai.*, mg.name AS series_name, m.title AS meeting_title, m.scheduled_at
      FROM app_agenda__action_items ai
      LEFT JOIN app_agenda__meetings m ON m.id = ai.meeting_id
      LEFT JOIN app_agenda__meeting_groups mg ON mg.id = m.group_id
      WHERE ai.status = 'open'
-     ORDER BY ai.due_date NULLS LAST, ai.created_at ASC`
+     ORDER BY (ai.due_date IS NULL), ai.due_date, ai.created_at ASC`
   );
   allActions = rows;
 }
@@ -397,6 +400,13 @@ async function navigateTo(newView, opts = {}) {
 }
 
 // ── Render: Home ──────────────────────────────────────────────────────────────
+// NOTE on adult gating: `canCreate`/`canManage` are advisory UI hints only.
+// The row policies cannot express "only adults may INSERT" on an
+// everyone-readable table (see APP_REVIEW_GUIDE.md hard constraints), so a
+// determined member could create/manage meetings via raw /api/db. What IS
+// server-enforced: audience visibility, owner/adult write scoping, completed
+// meetings frozen, and structural columns locked for non-adults. Making
+// management a hard restriction would require a configured privileged group.
 function renderHome() {
   const canCreate = HUB_MEMBER && isAdult(HUB_MEMBER);
   const app = document.getElementById("app");
@@ -424,8 +434,11 @@ function renderHome() {
 }
 
 function seriesCard(s) {
+  // esc() on ids everywhere they land in markup: row ids come from the DB and
+  // can be written with arbitrary content via raw /api/db, so an unescaped
+  // interpolation is a stored-XSS vector against every other member.
   return `
-    <div class="list-item" id="series-${s.id}">
+    <div class="list-item" id="series-${esc(s.id)}">
       <div class="list-item-inner">
         <div class="list-item-main">
           <div class="list-item-title">${esc(s.name)}</div>
@@ -487,7 +500,7 @@ function meetingCard(m) {
   const statusLabel = m.status === "in-progress" ? "In Progress" : m.status === "completed" ? "Completed" : "Upcoming";
   const dateStr = m.scheduled_at ? formatDate(m.scheduled_at) : "No date set";
   return `
-    <div class="list-item" id="meeting-${m.id}">
+    <div class="list-item" id="meeting-${esc(m.id)}">
       <div class="list-item-inner">
         <div class="list-item-main">
           <div class="list-item-title">${esc(title)}</div>
@@ -513,6 +526,9 @@ function renderMeeting() {
   const discussed = discussedItems(agendaItems);
   const openActions = openActionItems(actionItems);
   const doneActions = actionItems.filter(a => a.status !== "open");
+  // Mirrors the server rule (adults write any row, others only their own) so
+  // members are not shown controls that would 403.
+  const canEditNotes = !isCompleted && (canManage || currentMeeting.created_by === HUB_MEMBER?.id);
 
   let statusBarClass = `status-bar-${currentMeeting.status}`;
   let statusBarLabel = inProgress ? "Meeting in progress" : isCompleted ? "Meeting completed" : "Upcoming meeting";
@@ -576,8 +592,8 @@ function renderMeeting() {
       <span class="section-title">Meeting Notes</span>
       <span id="notes-status" style="font-size:.75rem;color:var(--muted)"></span>
     </div>
-    <textarea class="notes-area" id="notes-field" ${isCompleted ? "readonly" : ""} placeholder="Capture key decisions, context, and discussion notes here…">${esc(currentMeeting.notes ?? "")}</textarea>
-    ${!isCompleted ? `<div style="margin-top:6px;text-align:right"><button class="btn btn-sm btn-ghost" id="btn-save-notes">Save Notes</button></div>` : ""}
+    <textarea class="notes-area" id="notes-field" ${canEditNotes ? "" : "readonly"} placeholder="Capture key decisions, context, and discussion notes here…">${esc(currentMeeting.notes ?? "")}</textarea>
+    ${canEditNotes ? `<div style="margin-top:6px;text-align:right"><button class="btn btn-sm btn-ghost" id="btn-save-notes">Save Notes</button></div>` : ""}
   `;
 
   document.getElementById("btn-back")?.addEventListener("click", () => {
@@ -609,17 +625,23 @@ function renderMeeting() {
 function agendaItemRow(item, canAct) {
   const submitter = memberMap[item.submitted_by];
   const isDone = item.status !== "pending";
+  const isCompleted = currentMeeting?.status === "completed";
+  // Mirrors the server rule: adults may modify any item, others only their own.
+  // No controls on completed meetings — the record is settled.
+  const canModerate = HUB_MEMBER && (isAdult(HUB_MEMBER) || item.submitted_by === HUB_MEMBER.id);
   const statusBadge = item.status === "discussed"
     ? `<span class="badge badge-green">Discussed</span>`
     : item.status === "tabled"
     ? `<span class="badge badge-amber">Tabled</span>`
     : "";
   const actions = canAct
-    ? `<button class="btn btn-xs btn-ghost" id="item-discuss-${item.id}">✓</button>
-       <button class="btn btn-xs btn-ghost" id="item-table-${item.id}" title="Table">⏸</button>`
+    ? `<button class="btn btn-xs btn-ghost" id="item-discuss-${esc(item.id)}">✓</button>
+       <button class="btn btn-xs btn-ghost" id="item-table-${esc(item.id)}" title="Table">⏸</button>`
+    : isCompleted || !canModerate
+    ? ""
     : isDone
-    ? `<button class="btn btn-xs btn-ghost" id="item-reopen-${item.id}" title="Reopen">↩</button>`
-    : `<button class="btn btn-xs btn-ghost" id="item-delete-${item.id}" title="Remove" style="color:var(--red)">✕</button>`;
+    ? `<button class="btn btn-xs btn-ghost" id="item-reopen-${esc(item.id)}" title="Reopen">↩</button>`
+    : `<button class="btn btn-xs btn-ghost" id="item-delete-${esc(item.id)}" title="Remove" style="color:var(--red)">✕</button>`;
   return `
     <div class="agenda-row ${isDone ? "discussed" : ""}">
       <div class="agenda-row-main">
@@ -650,7 +672,7 @@ function actionItemRow(item, canToggle) {
   return `
     <div class="action-row ${isDone ? "done" : ""}">
       ${canToggle
-        ? `<input type="checkbox" class="action-checkbox" id="action-check-${item.id}" ${isDone ? "checked" : ""} />`
+        ? `<input type="checkbox" class="action-checkbox" id="action-check-${esc(item.id)}" ${isDone ? "checked" : ""} />`
         : `<div style="width:18px;height:18px;border-radius:4px;background:${isDone ? "var(--green)" : "var(--border)"};flex-shrink:0;margin-top:2px"></div>`
       }
       <div class="action-row-main">
@@ -1013,7 +1035,12 @@ function openAddActionModal(agendaItemId = null) {
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 async function updateMeetingStatus(status) {
-  await dbq(`UPDATE app_agenda__meetings SET status = ? WHERE id = ?`, [status, currentMeeting.id]);
+  try {
+    await dbq(`UPDATE app_agenda__meetings SET status = ? WHERE id = ?`, [status, currentMeeting.id]);
+  } catch (e) {
+    hubAlert("Could not update the meeting", { description: e.message });
+    return;
+  }
   currentMeeting = { ...currentMeeting, status };
   renderMeeting();
 }
@@ -1021,17 +1048,31 @@ async function updateMeetingStatus(status) {
 async function deleteMeeting() {
   const title = meetingTitle(currentMeeting, currentSeries);
   if (!await hubConfirm({ message: `Delete "${title}"?`, description: "This cannot be undone.", confirmLabel: "Delete" })) return;
-  await dbq(`DELETE FROM app_agenda__action_items WHERE meeting_id = ?`, [currentMeeting.id]);
-  await dbq(`DELETE FROM app_agenda__agenda_items WHERE meeting_id = ?`, [currentMeeting.id]);
-  await dbq(`DELETE FROM app_agenda__meetings WHERE id = ?`, [currentMeeting.id]);
+  try {
+    // Children first: /api/db is one statement per call, so a failure mid-way
+    // must leave the meeting intact (retryable) rather than orphan its rows.
+    await dbq(`DELETE FROM app_agenda__action_items WHERE meeting_id = ?`, [currentMeeting.id]);
+    await dbq(`DELETE FROM app_agenda__agenda_items WHERE meeting_id = ?`, [currentMeeting.id]);
+    await dbq(`DELETE FROM app_agenda__meetings WHERE id = ?`, [currentMeeting.id]);
+  } catch (e) {
+    hubAlert("Could not delete the meeting", { description: `${e.message} — try again.` });
+    return;
+  }
   syncMeetingsToStore().catch((e) => console.error("[agenda] syncMeetingsToStore failed:", e));
   await navigateTo("series", { series: currentSeries });
 }
 
 async function markItemStatus(itemId, status, resolution) {
+  const prev = agendaItems;
   agendaItems = agendaItems.map(i => i.id === itemId ? { ...i, status, resolution: resolution ?? i.resolution } : i);
   renderMeeting();
-  dbq(`UPDATE app_agenda__agenda_items SET status = ?, resolution = ? WHERE id = ?`, [status, resolution ?? null, itemId]);
+  try {
+    await dbq(`UPDATE app_agenda__agenda_items SET status = ?, resolution = ? WHERE id = ?`, [status, resolution ?? null, itemId]);
+  } catch (e) {
+    agendaItems = prev;
+    renderMeeting();
+    hubAlert("Could not update the agenda item", { description: e.message });
+  }
 }
 
 function openMarkItemModal(item, status) {
@@ -1065,7 +1106,12 @@ function openMarkItemModal(item, status) {
 }
 
 async function deleteAgendaItem(itemId) {
-  await dbq(`DELETE FROM app_agenda__agenda_items WHERE id = ?`, [itemId]);
+  try {
+    await dbq(`DELETE FROM app_agenda__agenda_items WHERE id = ?`, [itemId]);
+  } catch (e) {
+    hubAlert("Could not remove the agenda item", { description: e.message });
+    return;
+  }
   agendaItems = agendaItems.filter(i => i.id !== itemId);
   renderMeeting();
 }
@@ -1073,16 +1119,29 @@ async function deleteAgendaItem(itemId) {
 async function toggleActionDone(actionId, done) {
   const status = done ? "done" : "open";
   const completedAt = done ? now() : null;
+  const prev = actionItems;
   actionItems = actionItems.map(a => a.id === actionId ? { ...a, status, completed_at: completedAt } : a);
   renderMeeting();
-  dbq(`UPDATE app_agenda__action_items SET status = ?, completed_at = ? WHERE id = ?`, [status, completedAt, actionId]);
+  try {
+    await dbq(`UPDATE app_agenda__action_items SET status = ?, completed_at = ? WHERE id = ?`, [status, completedAt, actionId]);
+  } catch (e) {
+    actionItems = prev;
+    renderMeeting();
+    hubAlert("Could not update the action item", { description: e.message });
+  }
 }
 
 async function saveNotes() {
   const notes = document.getElementById("notes-field")?.value ?? "";
   const status = document.getElementById("notes-status");
   if (status) status.textContent = "Saving…";
-  await dbq(`UPDATE app_agenda__meetings SET notes = ? WHERE id = ?`, [notes, currentMeeting.id]);
+  try {
+    await dbq(`UPDATE app_agenda__meetings SET notes = ? WHERE id = ?`, [notes, currentMeeting.id]);
+  } catch (e) {
+    if (status) status.textContent = "Save failed";
+    hubAlert("Could not save notes", { description: e.message });
+    return;
+  }
   currentMeeting = { ...currentMeeting, notes };
   if (status) { status.textContent = "Saved"; setTimeout(() => { if (status) status.textContent = ""; }, 2000); }
 }
@@ -1091,11 +1150,16 @@ async function saveNotes() {
 
 async function syncMeetingsToStore() {
   if (!STORE_URL || !DB) return;
+  // Everyone-audience meetings only: the calendar_events store key is readable
+  // by the whole household, so exporting an adults-only meeting here would
+  // leak its title past the row policy. Fail-closed — a row whose audience
+  // doesn't compare as the plaintext 'everyone' is excluded.
   const { rows } = await dbq(
     `SELECT m.id, m.title, m.scheduled_at, mg.name AS series_name, m.created_by
      FROM app_agenda__meetings m
      JOIN app_agenda__meeting_groups mg ON mg.id = m.group_id
-     WHERE m.status != 'completed' AND m.scheduled_at IS NOT NULL AND m.scheduled_at >= ?
+     WHERE m.status != 'completed' AND m.audience = 'everyone'
+       AND m.scheduled_at IS NOT NULL AND m.scheduled_at >= ?
      ORDER BY m.scheduled_at ASC`,
     [new Date().toLocaleDateString("en-CA")]
   );
