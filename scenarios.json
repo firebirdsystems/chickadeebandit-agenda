@@ -1,0 +1,54 @@
+{
+  "scenarios": [
+    {
+      "name": "a completed meeting is frozen against edits, and a non-adult owner cannot change its audience",
+      "members": { "adult": "adult", "kid": "child" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meeting_groups (id, name, audience, created_by, created_at) VALUES ('g1', 'Family Council', 'everyone', ?, '2026-01-01T00:00:00Z')",
+          "params": ["{{adult}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, status, audience, created_by, created_at) VALUES ('m1', 'g1', 'Original', 'upcoming', 'everyone', ?, '2026-01-01T00:00:00Z')",
+          "params": ["{{kid}}"]
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "UPDATE app_agenda__meetings SET title = 'Edited' WHERE id = 'm1'",
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "SELECT title FROM app_agenda__meetings WHERE id = 'm1'",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "title": "Edited" }] }
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "UPDATE app_agenda__meetings SET audience = 'adults' WHERE id = 'm1'",
+          "expect": { "status": 403, "errorIncludes": "adult members" }
+        },
+        {
+          "action": "seedRaw",
+          "sql": "UPDATE app_agenda__meetings SET status = 'completed' WHERE id = 'm1'"
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "UPDATE app_agenda__meetings SET title = 'Late Edit' WHERE id = 'm1'",
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "SELECT title FROM app_agenda__meetings WHERE id = 'm1'",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "title": "Edited" }] }
+        }
+      ]
+    }
+  ]
+}
