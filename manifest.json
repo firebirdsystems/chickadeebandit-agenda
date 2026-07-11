@@ -25,7 +25,11 @@
       "everyone_values": ["everyone"],
       "adult_values": ["adults"],
       "write_owner_only": true,
-      "update_forbidden_columns": ["audience", "created_by", "created_at"]
+      "column_write_acls": {
+        "audience": { "writable_by": ["adult"], "actions": ["update"] },
+        "created_by": { "writable_by": ["adult"], "actions": ["update"] },
+        "created_at": { "writable_by": ["adult"], "actions": ["update"] }
+      }
     },
     "meetings": {
       "kind": "owner_or_visibility",
@@ -35,7 +39,12 @@
       "adult_values": ["adults"],
       "write_owner_only": false,
       "frozen_when": { "status_column": "status", "locked_values": ["completed"] },
-      "update_forbidden_columns": ["audience", "group_id", "created_by", "created_at"]
+      "column_write_acls": {
+        "audience": { "writable_by": ["adult"], "actions": ["update"] },
+        "group_id": { "writable_by": ["adult"], "actions": ["update"] },
+        "created_by": { "writable_by": ["adult"], "actions": ["update"] },
+        "created_at": { "writable_by": ["adult"], "actions": ["update"] }
+      }
     },
     "agenda_items": {
       "kind": "owner_or_visibility",
@@ -44,7 +53,12 @@
       "everyone_values": ["everyone"],
       "adult_values": ["adults"],
       "write_owner_only": false,
-      "update_forbidden_columns": ["audience", "meeting_id", "submitted_by", "created_at"]
+      "column_write_acls": {
+        "audience": { "writable_by": ["adult"], "actions": ["update"] },
+        "meeting_id": { "writable_by": ["adult"], "actions": ["update"] },
+        "submitted_by": { "writable_by": ["adult"], "actions": ["update"] },
+        "created_at": { "writable_by": ["adult"], "actions": ["update"] }
+      }
     },
     "action_items": {
       "kind": "owner_or_visibility",
@@ -53,7 +67,12 @@
       "everyone_values": ["everyone"],
       "adult_values": ["adults"],
       "write_owner_only": false,
-      "update_forbidden_columns": ["audience", "meeting_id", "created_by", "created_at"]
+      "column_write_acls": {
+        "audience": { "writable_by": ["adult"], "actions": ["update"] },
+        "meeting_id": { "writable_by": ["adult"], "actions": ["update"] },
+        "created_by": { "writable_by": ["adult"], "actions": ["update"] },
+        "created_at": { "writable_by": ["adult"], "actions": ["update"] }
+      }
     }
   },
   "store_acls": {
