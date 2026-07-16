@@ -13,6 +13,24 @@
     "writes": []
   },
   "exports": ["calendar_events"],
+  "agenda": [
+    {
+      "kind": "event",
+      "label": "Meetings",
+      "source": {
+        "kind": "sql",
+        "query": "SELECT id AS id, title AS title, scheduled_at AS when_at, (status = 'completed') AS done FROM app_agenda__meetings WHERE substr(scheduled_at, 1, 10) = :today ORDER BY scheduled_at LIMIT 10"
+      }
+    },
+    {
+      "kind": "task",
+      "label": "Action items",
+      "source": {
+        "kind": "sql",
+        "query": "SELECT id AS id, title AS title, due_date AS when_at, assigned_to AS member_id FROM app_agenda__action_items WHERE due_date = :today AND status = 'open' ORDER BY created_at LIMIT 10"
+      }
+    }
+  ],
   "permissions": {
     "default_audience": "everyone",
     "requires_approval": false
