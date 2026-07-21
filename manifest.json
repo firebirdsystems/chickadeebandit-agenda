@@ -8,6 +8,7 @@
   "storage": "db",
   "category": "general",
   "tags": ["meetings", "agenda", "action-items", "notes"],
+  "contexts": ["household", "shared_space"],
   "data_access": {
     "reads": ["family.members", "family.groups"],
     "writes": []
