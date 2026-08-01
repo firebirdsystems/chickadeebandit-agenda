@@ -118,3 +118,12 @@ export function avatarHtml(member) {
   if (!member) return `<div class="avatar" style="background:#9ca3af">${esc("?")}</div>`;
   return `<div class="avatar" style="background:${memberColor(member.id)}">${esc(initial(member.name))}</div>`;
 }
+
+/**
+ * Fields the in-app search matches against (see hub-sdk `searchMatch`).
+ * A series is found by its description as much as its name once a
+ * household runs several.
+ */
+export function searchableFields(item) {
+  return [item.name, item.description];
+}

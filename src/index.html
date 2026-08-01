@@ -243,6 +243,13 @@
 
     /* ── Divider ── */
     .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+    .search-row { margin-bottom: 12px; }
+    .search-input {
+      width: 100%; border: 1.5px solid var(--border-mid, var(--border, #d1d5db));
+      border-radius: 8px; padding: 9px 11px; font: inherit;
+      background: var(--surface, var(--card, #fff)); color: var(--text, inherit);
+    }
+    .search-input:focus { outline: none; border-color: var(--accent, #6366f1); }
   </style>
 </head>
 <body>
@@ -256,9 +263,9 @@ import {
   sortMeetings, upcomingMeetings, pastMeetings, meetingTitle,
   sortAgendaItems, pendingItems, discussedItems,
   countOpenActionItems, openActionItems, filterActionItemsByAssignee,
-  suggestNextDate, formatDate, formatDateShort, formatDueDate, avatarHtml,
+  suggestNextDate, formatDate, formatDateShort, formatDueDate, avatarHtml, searchableFields,
 } from "./logic.js";
-import { hubConfirm, hubAlert } from "/hub-sdk.js";
+import { hubConfirm, hubAlert, searchMatch } from "/hub-sdk.js";
 
 // ── Runtime globals ───────────────────────────────────────────────────────────
 const CONTEXT    = window.__CONTEXT_URL ?? "";
@@ -271,6 +278,7 @@ let members        = [];
 let memberMap      = {};
 let hubGroups      = [];           // hub-level member groups
 let view           = "home";       // "home" | "series" | "meeting" | "actions"
+let searchQ = "";       // in-app search (see logic.js searchableFields)
 let series         = [];           // meeting series list
 let meetings       = [];           // all meetings for current series
 let agendaItems    = [];           // items for current meeting
@@ -409,6 +417,7 @@ async function navigateTo(newView, opts = {}) {
 // management a hard restriction would require a configured privileged group.
 function renderHome() {
   const canCreate = HUB_MEMBER && isAdult(HUB_MEMBER);
+  const shown = searchQ ? series.filter(s => searchMatch(searchQ, searchableFields(s))) : series;
   const app = document.getElementById("app");
   app.innerHTML = `
     <div class="page-header">
@@ -418,15 +427,24 @@ function renderHome() {
         ${canCreate ? `<button class="btn btn-primary btn-sm" id="btn-new-series">+ New Series</button>` : ""}
       </div>
     </div>
+    ${series.length ? `<div class="search-row"><input id="search" class="search-input" type="search" placeholder="Search series…" aria-label="Search series" value="${esc(searchQ)}" /></div>` : ""}
     ${series.length === 0
       ? `<div class="empty"><p>No meeting series yet.</p>${canCreate ? `<button class="btn btn-primary" style="margin-top:12px" id="btn-new-series-empty">Create a series</button>` : ""}</div>`
-      : `<div class="list">${series.map(seriesCard).join("")}</div>`
+      : shown.length
+        ? `<div class="list">${shown.map(seriesCard).join("")}</div>`
+        : `<div class="empty"><p>No series match "${esc(searchQ)}".</p></div>`
     }
   `;
   document.getElementById("btn-actions")?.addEventListener("click", () => navigateTo("actions"));
   document.getElementById("btn-new-series")?.addEventListener("click", openNewSeriesModal);
   document.getElementById("btn-new-series-empty")?.addEventListener("click", openNewSeriesModal);
-  series.forEach(s => {
+  document.getElementById("search")?.addEventListener("input", (e) => {
+    searchQ = e.target.value;
+    renderHome();
+    const box = document.getElementById("search");
+    if (box) { box.focus(); box.setSelectionRange(searchQ.length, searchQ.length); }
+  });
+  shown.forEach(s => {
     document.getElementById(`series-${s.id}`)?.addEventListener("click", () => {
       navigateTo("series", { series: s });
     });

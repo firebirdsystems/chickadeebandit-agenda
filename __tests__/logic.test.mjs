@@ -4,7 +4,7 @@ import {
   sortMeetings, upcomingMeetings, pastMeetings, meetingTitle,
   sortAgendaItems, pendingItems, discussedItems,
   countOpenActionItems, openActionItems, filterActionItemsByAssignee,
-  suggestNextDate, formatDate, formatDateShort, formatDueDate,
+  suggestNextDate, formatDate, formatDateShort, formatDueDate, searchableFields,
 } from "../src/logic.js";
 
 // ── isAdult ───────────────────────────────────────────────────────────────────
@@ -202,5 +202,12 @@ describe("formatDueDate", () => {
   it("marks past dates as overdue", () => {
     const result = formatDueDate("2020-01-01");
     expect(result.overdue).toBe(true);
+  });
+});
+
+describe("searchableFields", () => {
+  it("matches on the series description, not just its name", () => {
+    expect(searchableFields({ name: "Board", description: "monthly trustees meeting" }))
+      .toContain("monthly trustees meeting");
   });
 });
