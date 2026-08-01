@@ -94,6 +94,16 @@
       }
     }
   },
+  "db_plaintext_columns": ["assigned_to"],
+  "member_references": {
+    "meeting_groups": { "column": "created_by", "on_removed": "keep" },
+    "meetings": { "column": "created_by", "on_removed": "keep" },
+    "agenda_items": { "column": "submitted_by", "on_removed": "keep" },
+    "action_items": [
+      { "column": "created_by", "on_removed": "keep" },
+      { "column": "assigned_to", "on_removed": "null" }
+    ]
+  },
   "store_acls": {
     "calendar_events": {
       "write": { "require_role": "adult" }

@@ -1035,6 +1035,17 @@ function openAddActionModal(agendaItemId = null) {
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 async function updateMeetingStatus(status) {
+  // Ending a meeting is irreversible: `frozen_when` locks every row of a
+  // "completed" meeting, so there is no un-end — the agenda, the notes and the
+  // action items are all settled from that click onwards. It was a single
+  // unconfirmed button next to "Start Meeting".
+  if (status === "completed" && !await hubConfirm({
+    message: "End this meeting?",
+    description: "The agenda, notes and action items are locked once a meeting ends. This can't be undone.",
+    confirmLabel: "End meeting",
+    destructive: true,
+  })) return;
+
   try {
     await dbq(`UPDATE app_agenda__meetings SET status = ? WHERE id = ?`, [status, currentMeeting.id]);
   } catch (e) {
@@ -1043,6 +1054,10 @@ async function updateMeetingStatus(status) {
   }
   currentMeeting = { ...currentMeeting, status };
   renderMeeting();
+  // The household calendar export excludes completed meetings, so it has to be
+  // rewritten here — otherwise a meeting that finished last week sat on
+  // everyone's calendar as an upcoming event forever.
+  syncMeetingsToStore().catch((e) => console.error("[agenda] syncMeetingsToStore failed:", e));
 }
 
 async function deleteMeeting() {

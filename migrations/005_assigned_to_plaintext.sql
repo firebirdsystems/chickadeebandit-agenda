@@ -1,0 +1,17 @@
+-- No schema change. This file records why `assigned_to` joined
+-- db_plaintext_columns in manifest.json.
+--
+-- Action items now declare `member_references.action_items.assigned_to →
+-- "null"`, so the hub clears the assignee when that member leaves the household
+-- and the item survives as an unassigned open task rather than pointing at
+-- somebody who is gone. That cleanup matches with `WHERE assigned_to = ?`, and
+-- at-rest encryption is AES-GCM with a random IV — ciphertext never compares
+-- equal, so the column has to be stored plaintext or the clear would silently
+-- match nothing while reporting success.
+--
+-- One-way, exactly as 003_audience.sql records for `audience`: rows written
+-- before this declaration still hold an encrypted value and cannot be
+-- backfilled from SQL (no decrypt in the migration path), so the cleanup
+-- reaches action items created from here onwards. Reads are unaffected either
+-- way — decryption is driven by the stored value's shape, not by the column.
+SELECT 1;
