@@ -272,6 +272,21 @@ const CONTEXT    = window.__CONTEXT_URL ?? "";
 const DB         = window.__DB_URL      ?? "";
 const STORE_URL  = window.__STORE_URL   ?? "";
 const HUB_MEMBER = window.__CURRENT_MEMBER ?? null;
+const EVENTS     = window.__EVENTS_URL     ?? "";
+
+// Best-effort: the row is already written, so a failed publish is not fatal.
+async function publishEvent(type, subjectId, payload = {}) {
+  if (!EVENTS) return;
+  try {
+    await fetch(EVENTS, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, subject_id: subjectId, payload }),
+    });
+  } catch {
+    // ignored on purpose
+  }
+}
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let members        = [];
@@ -875,11 +890,23 @@ function openScheduleModal() {
     btn.disabled = true; btn.textContent = "Scheduling…";
     const title     = document.getElementById("sched-title")?.value.trim() || null;
     const scheduled = document.getElementById("sched-date")?.value || null;
+    const meetingId = uuid();
+    const audience  = enforceableAudience(currentSeries.audience);
+    const scheduledAt = scheduled ? scheduled.padEnd(19, ":00") : null;
     try {
       await dbq(
         `INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, audience, created_by, created_at) VALUES (?,?,?,?,'upcoming',?,?,?)`,
-        [uuid(), currentSeries.id, title, scheduled ? scheduled.padEnd(19, ":00") : null, enforceableAudience(currentSeries.audience), HUB_MEMBER?.id ?? "unknown", now()]
+        [meetingId, currentSeries.id, title, scheduledAt, audience, HUB_MEMBER?.id ?? "unknown", now()]
       );
+      // Adults-only series stay off the bus: every member who can open this app
+      // reads the event feed, which is wider than the row policy on `meetings`.
+      if (audience === "everyone") {
+        await publishEvent("agenda.meeting_scheduled", meetingId, {
+          title: title ?? "",
+          scheduled_at: scheduledAt,
+          series: currentSeries.name ?? "",
+        });
+      }
       syncMeetingsToStore().catch((e) => console.error("[agenda] syncMeetingsToStore failed:", e));
       closeModal();
       await navigateTo("series", { series: currentSeries });

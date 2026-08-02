@@ -36,6 +36,24 @@
     "default_audience": "everyone",
     "requires_approval": false
   },
+  "glance": {
+    "source": {
+      "kind": "sql",
+      "query": "SELECT COUNT(*) AS n FROM app_agenda__action_items WHERE assigned_to = :me AND status = 'open' LIMIT 1"
+    },
+    "display": {
+      "template": "badge",
+      "count": "n",
+      "label": "action items on you",
+      "severity": "warn"
+    }
+  },
+  "publishes": [
+    "agenda.meeting_scheduled"
+  ],
+  "publish_acls": {
+    "agenda.meeting_scheduled": { "require_role": "member" }
+  },
   "row_policies": {
     "meeting_groups": {
       "kind": "owner_or_visibility",
