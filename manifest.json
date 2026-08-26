@@ -6,6 +6,10 @@
   "entrypoint": "index.html",
   "runtime": "static",
   "storage": "db",
+  "preload": {
+    "meeting_groups": {"sql": "SELECT * FROM app_agenda__meeting_groups ORDER BY created_at ASC"},
+    "action_items": {"sql": "SELECT ai.*, mg.name AS series_name, m.title AS meeting_title, m.scheduled_at FROM app_agenda__action_items ai LEFT JOIN app_agenda__meetings m ON m.id = ai.meeting_id LEFT JOIN app_agenda__meeting_groups mg ON mg.id = m.group_id WHERE ai.status = 'open' ORDER BY (ai.due_date IS NULL), ai.due_date, ai.created_at ASC"}
+  },
   "category": "general",
   "tags": ["meetings", "agenda", "action-items", "notes"],
   "contexts": ["household", "shared_space"],
