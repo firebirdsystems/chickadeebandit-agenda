@@ -439,12 +439,12 @@ function renderHome() {
       <h1>📋 Agenda</h1>
       <div class="header-actions">
         <button class="btn btn-ghost btn-sm" id="btn-actions">Action Items</button>
-        ${canCreate ? `<button class="btn btn-primary btn-sm" id="btn-new-series">+ New Series</button>` : ""}
+        ${canCreate ? `<button class="btn btn-primary btn-sm" id="btn-new-series" data-testid="new-series">+ New Series</button>` : ""}
       </div>
     </div>
     ${series.length ? `<div class="search-row"><input id="search" class="search-input" type="search" placeholder="Search series…" aria-label="Search series" value="${esc(searchQ)}" /></div>` : ""}
     ${series.length === 0
-      ? `<div class="empty"><p>No meeting series yet.</p>${canCreate ? `<button class="btn btn-primary" style="margin-top:12px" id="btn-new-series-empty">Create a series</button>` : ""}</div>`
+      ? `<div class="empty"><p>No meeting series yet.</p>${canCreate ? `<button class="btn btn-primary" style="margin-top:12px" id="btn-new-series-empty" data-testid="new-series-empty">Create a series</button>` : ""}</div>`
       : shown.length
         ? `<div class="list">${shown.map(seriesCard).join("")}</div>`
         : `<div class="empty"><p>No series match "${esc(searchQ)}".</p></div>`
@@ -471,7 +471,7 @@ function seriesCard(s) {
   // can be written with arbitrary content via raw /api/db, so an unescaped
   // interpolation is a stored-XSS vector against every other member.
   return `
-    <div class="list-item" id="series-${esc(s.id)}">
+    <div class="list-item" id="series-${esc(s.id)}" data-testid="series-card" data-series-id="${esc(s.id)}">
       <div class="list-item-inner">
         <div class="list-item-main">
           <div class="list-item-title">${esc(s.name)}</div>
@@ -498,7 +498,7 @@ function renderSeries(loading = false) {
     <div class="page-header">
       <h1>${esc(currentSeries.name)}</h1>
       <div class="header-actions">
-        ${canManage ? `<button class="btn btn-primary btn-sm" id="btn-schedule">+ Schedule Meeting</button>` : ""}
+        ${canManage ? `<button class="btn btn-primary btn-sm" id="btn-schedule" data-testid="schedule-meeting">+ Schedule Meeting</button>` : ""}
       </div>
     </div>
     ${currentSeries.description ? `<p style="color:var(--muted);font-size:.85rem;margin-bottom:14px">${esc(currentSeries.description)}</p>` : ""}
@@ -533,7 +533,7 @@ function meetingCard(m) {
   const statusLabel = m.status === "in-progress" ? "In Progress" : m.status === "completed" ? "Completed" : "Upcoming";
   const dateStr = m.scheduled_at ? formatDate(m.scheduled_at) : "No date set";
   return `
-    <div class="list-item" id="meeting-${esc(m.id)}">
+    <div class="list-item" id="meeting-${esc(m.id)}" data-testid="meeting-card" data-meeting-id="${esc(m.id)}">
       <div class="list-item-inner">
         <div class="list-item-main">
           <div class="list-item-title">${esc(title)}</div>
@@ -570,7 +570,7 @@ function renderMeeting() {
     const canDelete = !inProgress && agendaItems.length === 0;
     statusBarBtn = inProgress
       ? `<button class="btn btn-sm btn-danger" id="btn-end-meeting">End Meeting</button>`
-      : `${canDelete ? `<button class="btn btn-sm btn-danger" id="btn-delete-meeting">Delete</button>` : ""}<button class="btn btn-sm btn-success" id="btn-start-meeting">Start Meeting</button>`;
+      : `${canDelete ? `<button class="btn btn-sm btn-danger" id="btn-delete-meeting">Delete</button>` : ""}<button class="btn btn-sm btn-success" id="btn-start-meeting" data-testid="start-meeting">Start Meeting</button>`;
   }
 
   const app = document.getElementById("app");
@@ -581,7 +581,7 @@ function renderMeeting() {
         <h1>${esc(title)}</h1>
         <p style="font-size:.82rem;color:var(--muted);margin-top:2px">${esc(dateStr)}</p>
       </div>
-      ${canManage && !isCompleted ? `<button class="btn btn-ghost btn-sm" id="btn-edit-meeting">Edit</button>` : ""}
+      ${canManage && !isCompleted ? `<button class="btn btn-ghost btn-sm" id="btn-edit-meeting" data-testid="edit-meeting">Edit</button>` : ""}
     </div>
 
     <div class="meeting-status-bar ${statusBarClass}">
@@ -592,7 +592,7 @@ function renderMeeting() {
     <!-- Agenda Items -->
     <div class="section-header">
       <span class="section-title">Agenda Items (${agendaItems.length})</span>
-      ${!isCompleted ? `<button class="btn btn-ghost btn-xs" id="btn-add-item">+ Add Item</button>` : ""}
+      ${!isCompleted ? `<button class="btn btn-ghost btn-xs" id="btn-add-item" data-testid="add-item">+ Add Item</button>` : ""}
     </div>
     ${agendaItems.length === 0
       ? `<p style="font-size:.85rem;color:var(--muted);margin-bottom:8px">No agenda items yet.</p>`
@@ -674,9 +674,9 @@ function agendaItemRow(item, canAct) {
     ? ""
     : isDone
     ? `<button class="btn btn-xs btn-ghost" id="item-reopen-${esc(item.id)}" title="Reopen">↩</button>`
-    : `<button class="btn btn-xs btn-ghost" id="item-delete-${esc(item.id)}" title="Remove" style="color:var(--red)">✕</button>`;
+    : `<button class="btn btn-xs btn-ghost" id="item-delete-${esc(item.id)}" data-testid="agenda-item-delete" data-item-id="${esc(item.id)}" title="Remove" style="color:var(--red)">✕</button>`;
   return `
-    <div class="agenda-row ${isDone ? "discussed" : ""}">
+    <div class="agenda-row ${isDone ? "discussed" : ""}" data-testid="agenda-row" data-item-id="${esc(item.id)}">
       <div class="agenda-row-main">
         <div class="agenda-row-title">${esc(item.title)}</div>
         ${item.description ? `<div class="agenda-row-desc">${esc(item.description)}</div>` : ""}

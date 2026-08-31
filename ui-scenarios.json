@@ -1,0 +1,85 @@
+{
+  "scenarios": [
+    {
+      "name": "an adult is offered the meeting management controls a child is not",
+      "members": { "parent": "adult", "kid": "child" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meeting_groups (id, name, audience, created_by, created_at) VALUES ('ui-g1', ?, 'everyone', ?, datetime('now'))",
+          "params": ["Family Council", "{{parent}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, status, audience, created_by, created_at) VALUES ('ui-m1', 'ui-g1', ?, 'upcoming', 'everyone', ?, datetime('now'))",
+          "params": ["March Council", "{{parent}}"]
+        },
+        { "action": "open", "as": "parent" },
+        { "action": "expectVisible", "as": "parent", "selector": "[data-testid=\"series-card\"][data-series-id=\"ui-g1\"]" },
+        { "action": "expectVisible", "as": "parent", "selector": "[data-testid=\"new-series\"]" },
+        { "action": "click", "as": "parent", "selector": "[data-testid=\"series-card\"][data-series-id=\"ui-g1\"]" },
+        { "action": "expectVisible", "as": "parent", "selector": "[data-testid=\"meeting-card\"][data-meeting-id=\"ui-m1\"]" },
+        { "action": "expectVisible", "as": "parent", "selector": "[data-testid=\"schedule-meeting\"]" },
+        { "action": "click", "as": "parent", "selector": "[data-testid=\"meeting-card\"][data-meeting-id=\"ui-m1\"]" },
+        { "action": "expectVisible", "as": "parent", "selector": "[data-testid=\"add-item\"]" },
+        { "action": "expectVisible", "as": "parent", "selector": "[data-testid=\"edit-meeting\"]" },
+        { "action": "expectVisible", "as": "parent", "selector": "[data-testid=\"start-meeting\"]" },
+
+        { "action": "open", "as": "kid" },
+        { "action": "expectVisible", "as": "kid", "selector": "[data-testid=\"series-card\"][data-series-id=\"ui-g1\"]" },
+        { "action": "expectCount", "as": "kid", "selector": "[data-testid=\"new-series\"]", "count": 0 },
+        { "action": "click", "as": "kid", "selector": "[data-testid=\"series-card\"][data-series-id=\"ui-g1\"]" },
+        { "action": "expectVisible", "as": "kid", "selector": "[data-testid=\"meeting-card\"][data-meeting-id=\"ui-m1\"]" },
+        { "action": "expectCount", "as": "kid", "selector": "[data-testid=\"schedule-meeting\"]", "count": 0 },
+        { "action": "click", "as": "kid", "selector": "[data-testid=\"meeting-card\"][data-meeting-id=\"ui-m1\"]" },
+        { "action": "expectVisible", "as": "kid", "selector": "[data-testid=\"add-item\"]" },
+        { "action": "expectCount", "as": "kid", "selector": "[data-testid=\"edit-meeting\"]", "count": 0 },
+        { "action": "expectCount", "as": "kid", "selector": "[data-testid=\"start-meeting\"]", "count": 0 }
+      ]
+    },
+    {
+      "name": "the agenda item remove control follows ownership for a child and covers every item for an adult",
+      "members": { "parent": "adult", "kid": "child" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meeting_groups (id, name, audience, created_by, created_at) VALUES ('ui-g1', ?, 'everyone', ?, datetime('now'))",
+          "params": ["Family Council", "{{parent}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, status, audience, created_by, created_at) VALUES ('ui-m1', 'ui-g1', ?, 'upcoming', 'everyone', ?, datetime('now'))",
+          "params": ["March Council", "{{parent}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, audience, created_at) VALUES ('ui-i-parent', 'ui-m1', ?, ?, 1, 'pending', 'everyone', datetime('now'))",
+          "params": ["Budget review", "{{parent}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, audience, created_at) VALUES ('ui-i-kid', 'ui-m1', ?, ?, 2, 'pending', 'everyone', datetime('now'))",
+          "params": ["Later bedtime on Fridays", "{{kid}}"]
+        },
+        { "action": "open", "as": "kid" },
+        { "action": "expectVisible", "as": "kid", "selector": "[data-testid=\"series-card\"][data-series-id=\"ui-g1\"]" },
+        { "action": "click", "as": "kid", "selector": "[data-testid=\"series-card\"][data-series-id=\"ui-g1\"]" },
+        { "action": "expectVisible", "as": "kid", "selector": "[data-testid=\"meeting-card\"][data-meeting-id=\"ui-m1\"]" },
+        { "action": "click", "as": "kid", "selector": "[data-testid=\"meeting-card\"][data-meeting-id=\"ui-m1\"]" },
+        { "action": "expectVisible", "as": "kid", "selector": "[data-testid=\"agenda-row\"][data-item-id=\"ui-i-parent\"]" },
+        { "action": "expectCount", "as": "kid", "selector": "[data-testid=\"agenda-row\"]", "count": 2 },
+        { "action": "expectVisible", "as": "kid", "selector": "[data-testid=\"agenda-item-delete\"][data-item-id=\"ui-i-kid\"]" },
+        { "action": "expectCount", "as": "kid", "selector": "[data-testid=\"agenda-item-delete\"][data-item-id=\"ui-i-parent\"]", "count": 0 },
+        { "action": "expectCount", "as": "kid", "selector": "[data-testid=\"agenda-item-delete\"]", "count": 1 },
+
+        { "action": "open", "as": "parent" },
+        { "action": "expectVisible", "as": "parent", "selector": "[data-testid=\"series-card\"][data-series-id=\"ui-g1\"]" },
+        { "action": "click", "as": "parent", "selector": "[data-testid=\"series-card\"][data-series-id=\"ui-g1\"]" },
+        { "action": "expectVisible", "as": "parent", "selector": "[data-testid=\"meeting-card\"][data-meeting-id=\"ui-m1\"]" },
+        { "action": "click", "as": "parent", "selector": "[data-testid=\"meeting-card\"][data-meeting-id=\"ui-m1\"]" },
+        { "action": "expectVisible", "as": "parent", "selector": "[data-testid=\"agenda-row\"][data-item-id=\"ui-i-kid\"]" },
+        { "action": "expectCount", "as": "parent", "selector": "[data-testid=\"agenda-item-delete\"]", "count": 2 }
+      ]
+    }
+  ]
+}
