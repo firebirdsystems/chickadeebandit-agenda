@@ -16,14 +16,14 @@
       --muted:        var(--hub-text-muted, #6b7280);
       --accent:       var(--hub-primary, #111827);
       --accent-hover: var(--hub-primary-hover, #374151);
-      --accent-light: #f3f4f6;
+      --accent-light: var(--bg);
       --radius:       var(--hub-radius, 0.5rem);
       --shadow:       0 1px 3px rgba(0,0,0,.07);
       --shadow-md:    0 4px 12px rgba(0,0,0,.1);
-      --red:    #dc2626; --red-light:   #fee2e2;
-      --green:  #059669; --green-light: #d1fae5;
-      --amber:  #d97706; --amber-light: #fef3c7;
-      --blue:   #2563eb; --blue-light:  #dbeafe;
+      --red:    var(--hub-tint-danger-fg, #dc2626); --red-light:   var(--hub-tint-danger, #fee2e2);
+      --green:  var(--hub-tint-success-fg, #059669); --green-light: var(--hub-tint-success, #d1fae5);
+      --amber:  var(--hub-tint-warning-fg, #d97706); --amber-light: var(--hub-tint-warning, #fef3c7);
+      --blue:   var(--hub-tint-info-fg, #2563eb); --blue-light:  var(--hub-tint-info, #dbeafe);
     }
 
     body {
@@ -197,7 +197,7 @@
     .action-row.done { opacity: .55; }
     .action-checkbox {
       width: 18px; height: 18px; border-radius: 4px; border: 2px solid var(--border-mid);
-      cursor: pointer; flex-shrink: 0; margin-top: 2px; appearance: none; background: white;
+      cursor: pointer; flex-shrink: 0; margin-top: 2px; appearance: none; background: var(--card);
       transition: background .15s, border-color .15s;
     }
     .action-checkbox:checked { background: var(--green); border-color: var(--green); }
