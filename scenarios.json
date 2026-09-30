@@ -49,6 +49,264 @@
           "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "title": "Edited" }] }
         }
       ]
+    },
+    {
+      "name": "in a shared space only the steward edits another member's meetings, agenda items, and action items; a participant adult cannot",
+      "context": "shared_space",
+      "members": { "a": "adult", "b": "adult", "steward": "admin" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meeting_groups (id, name, audience, created_by, created_at) VALUES ('g1', 'Board', 'everyone', ?, '2026-01-01T00:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, status, audience, created_by, created_at) VALUES ('m1', 'g1', 'Orig meeting', 'upcoming', 'everyone', ?, '2026-01-01T00:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, audience, created_at) VALUES ('i1', 'm1', 'Orig item', ?, 'everyone', '2026-01-01T00:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, created_by, audience, created_at) VALUES ('x1', 'm1', 'Orig action', ?, 'everyone', '2026-01-01T00:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "UPDATE app_agenda__meetings SET title = ? WHERE id = ?",
+          "params": ["hijacked", "m1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "UPDATE app_agenda__agenda_items SET title = ? WHERE id = ?",
+          "params": ["hijacked", "i1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "UPDATE app_agenda__action_items SET title = ? WHERE id = ?",
+          "params": ["hijacked", "x1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT title FROM app_agenda__meetings WHERE id = ?",
+          "params": ["m1"],
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "title": "Orig meeting" }] }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT title FROM app_agenda__agenda_items WHERE id = ?",
+          "params": ["i1"],
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "title": "Orig item" }] }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT title FROM app_agenda__action_items WHERE id = ?",
+          "params": ["x1"],
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "title": "Orig action" }] }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "UPDATE app_agenda__meetings SET title = ? WHERE id = ?",
+          "params": ["moderated", "m1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "UPDATE app_agenda__agenda_items SET title = ? WHERE id = ?",
+          "params": ["moderated", "i1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "UPDATE app_agenda__action_items SET title = ? WHERE id = ?",
+          "params": ["moderated", "x1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT title FROM app_agenda__meetings WHERE id = ?",
+          "params": ["m1"],
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "title": "moderated" }] }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT title FROM app_agenda__agenda_items WHERE id = ?",
+          "params": ["i1"],
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "title": "moderated" }] }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT title FROM app_agenda__action_items WHERE id = ?",
+          "params": ["x1"],
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "title": "moderated" }] }
+        }
+      ]
+    },
+    {
+      "name": "in a shared space only the steward removes another member's agenda items and action items; a participant adult cannot",
+      "context": "shared_space",
+      "members": { "a": "adult", "b": "adult", "steward": "admin" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meeting_groups (id, name, audience, created_by, created_at) VALUES ('g1', 'Board', 'everyone', ?, '2026-01-01T00:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, status, audience, created_by, created_at) VALUES ('m1', 'g1', 'Orig meeting', 'upcoming', 'everyone', ?, '2026-01-01T00:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, audience, created_at) VALUES ('i1', 'm1', 'Orig item', ?, 'everyone', '2026-01-01T00:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, created_by, audience, created_at) VALUES ('x1', 'm1', 'Orig action', ?, 'everyone', '2026-01-01T00:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "DELETE FROM app_agenda__action_items WHERE id = ?",
+          "params": ["x1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT id FROM app_agenda__action_items",
+          "expect": { "status": 200, "rowCount": 1 }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "DELETE FROM app_agenda__action_items WHERE id = ?",
+          "params": ["x1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT id FROM app_agenda__action_items",
+          "expect": { "status": 200, "rowCount": 0 }
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "DELETE FROM app_agenda__agenda_items WHERE id = ?",
+          "params": ["i1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT id FROM app_agenda__agenda_items",
+          "expect": { "status": 200, "rowCount": 1 }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "DELETE FROM app_agenda__agenda_items WHERE id = ?",
+          "params": ["i1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT id FROM app_agenda__agenda_items",
+          "expect": { "status": 200, "rowCount": 0 }
+        }
+      ]
+    },
+    {
+      "name": "in a household any adult edits another member's meetings, agenda items, and action items",
+      "members": { "a": "adult", "b": "adult" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meeting_groups (id, name, audience, created_by, created_at) VALUES ('g1', 'Board', 'everyone', ?, '2026-01-01T00:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, status, audience, created_by, created_at) VALUES ('m1', 'g1', 'Orig meeting', 'upcoming', 'everyone', ?, '2026-01-01T00:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, audience, created_at) VALUES ('i1', 'm1', 'Orig item', ?, 'everyone', '2026-01-01T00:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, created_by, audience, created_at) VALUES ('x1', 'm1', 'Orig action', ?, 'everyone', '2026-01-01T00:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "UPDATE app_agenda__meetings SET title = ? WHERE id = ?",
+          "params": ["edited", "m1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "UPDATE app_agenda__agenda_items SET title = ? WHERE id = ?",
+          "params": ["edited", "i1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "UPDATE app_agenda__action_items SET title = ? WHERE id = ?",
+          "params": ["edited", "x1"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT title FROM app_agenda__meetings WHERE id = ?",
+          "params": ["m1"],
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "title": "edited" }] }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT title FROM app_agenda__agenda_items WHERE id = ?",
+          "params": ["i1"],
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "title": "edited" }] }
+        },
+        {
+          "action": "db",
+          "as": "b",
+          "sql": "SELECT title FROM app_agenda__action_items WHERE id = ?",
+          "params": ["x1"],
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "title": "edited" }] }
+        }
+      ]
     }
   ]
 }
