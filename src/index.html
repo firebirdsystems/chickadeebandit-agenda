@@ -265,7 +265,7 @@ import {
   countOpenActionItems, openActionItems, filterActionItemsByAssignee,
   suggestNextDate, formatDate, formatDateShort, formatDueDate, avatarHtml, searchableFields,
 } from "./logic.js";
-import { hubConfirm, hubAlert, searchMatch } from "/hub-sdk.js";
+import { hubConfirm, hubAlert, searchMatch, glyph } from "/hub-sdk.js";
 
 // ── Runtime globals ───────────────────────────────────────────────────────────
 const CONTEXT    = window.__CONTEXT_URL ?? "";
@@ -436,7 +436,7 @@ function renderHome() {
   const app = document.getElementById("app");
   app.innerHTML = `
     <div class="page-header">
-      <h1>📋 Agenda</h1>
+      <h1>${glyph("agenda")} Agenda</h1>
       <div class="header-actions">
         <button class="btn btn-ghost btn-sm" id="btn-actions">Action Items</button>
         ${canCreate ? `<button class="btn btn-primary btn-sm" id="btn-new-series" data-testid="new-series">+ New Series</button>` : ""}
@@ -668,13 +668,13 @@ function agendaItemRow(item, canAct) {
     ? `<span class="badge badge-amber">Tabled</span>`
     : "";
   const actions = canAct
-    ? `<button class="btn btn-xs btn-ghost" id="item-discuss-${esc(item.id)}">✓</button>
-       <button class="btn btn-xs btn-ghost" id="item-table-${esc(item.id)}" title="Table">⏸</button>`
+    ? `<button class="btn btn-xs btn-ghost" id="item-discuss-${esc(item.id)}" title="Mark discussed" aria-label="Mark discussed">${glyph("tick")}</button>
+       <button class="btn btn-xs btn-ghost" id="item-table-${esc(item.id)}" title="Table" aria-label="Table">${glyph("pause")}</button>`
     : isCompleted || !canModerate
     ? ""
     : isDone
     ? `<button class="btn btn-xs btn-ghost" id="item-reopen-${esc(item.id)}" title="Reopen">↩</button>`
-    : `<button class="btn btn-xs btn-ghost" id="item-delete-${esc(item.id)}" data-testid="agenda-item-delete" data-item-id="${esc(item.id)}" title="Remove" style="color:var(--red)">✕</button>`;
+    : `<button class="btn btn-xs btn-ghost" id="item-delete-${esc(item.id)}" data-testid="agenda-item-delete" data-item-id="${esc(item.id)}" title="Remove" style="color:var(--red)" aria-label="Remove">${glyph("close", { accent: "currentColor" })}</button>`;
   return `
     <div class="agenda-row ${isDone ? "discussed" : ""}" data-testid="agenda-row" data-item-id="${esc(item.id)}">
       <div class="agenda-row-main">
@@ -792,7 +792,7 @@ function openNewSeriesModal() {
     <div class="modal">
       <div class="modal-header">
         <h2>New Meeting Series</h2>
-        <button class="modal-close" id="modal-close-btn">✕</button>
+        <button class="modal-close" id="modal-close-btn" aria-label="Close">${glyph("close", { accent: "currentColor" })}</button>
       </div>
       <div class="modal-body">
         <div id="modal-error"></div>
@@ -863,7 +863,7 @@ function openScheduleModal() {
     <div class="modal">
       <div class="modal-header">
         <h2>Schedule Meeting</h2>
-        <button class="modal-close" id="modal-close-btn">✕</button>
+        <button class="modal-close" id="modal-close-btn" aria-label="Close">${glyph("close", { accent: "currentColor" })}</button>
       </div>
       <div class="modal-body">
         <div id="modal-error"></div>
@@ -924,7 +924,7 @@ function openEditMeetingModal() {
     <div class="modal">
       <div class="modal-header">
         <h2>Edit Meeting</h2>
-        <button class="modal-close" id="modal-close-btn">✕</button>
+        <button class="modal-close" id="modal-close-btn" aria-label="Close">${glyph("close", { accent: "currentColor" })}</button>
       </div>
       <div class="modal-body">
         <div id="modal-error"></div>
@@ -971,7 +971,7 @@ function openAddItemModal() {
     <div class="modal">
       <div class="modal-header">
         <h2>Add Agenda Item</h2>
-        <button class="modal-close" id="modal-close-btn">✕</button>
+        <button class="modal-close" id="modal-close-btn" aria-label="Close">${glyph("close", { accent: "currentColor" })}</button>
       </div>
       <div class="modal-body">
         <div id="modal-error"></div>
@@ -1025,7 +1025,7 @@ function openAddActionModal(agendaItemId = null) {
     <div class="modal">
       <div class="modal-header">
         <h2>Add Action Item</h2>
-        <button class="modal-close" id="modal-close-btn">✕</button>
+        <button class="modal-close" id="modal-close-btn" aria-label="Close">${glyph("close", { accent: "currentColor" })}</button>
       </div>
       <div class="modal-body">
         <div id="modal-error"></div>
@@ -1141,7 +1141,7 @@ function openMarkItemModal(item, status) {
     <div class="modal">
       <div class="modal-header">
         <h2>${esc(label)}</h2>
-        <button class="modal-close" id="modal-close-btn">✕</button>
+        <button class="modal-close" id="modal-close-btn" aria-label="Close">${glyph("close", { accent: "currentColor" })}</button>
       </div>
       <div class="modal-body">
         <p style="font-size:.85rem;color:var(--muted);margin-bottom:12px">${esc(item.title)}</p>

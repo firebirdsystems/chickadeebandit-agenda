@@ -82,7 +82,7 @@
 <body>
 
 <div class="header">
-  <span class="header-title">📋 Agenda</span>
+  <span class="header-title"><span id="title-glyph"></span> Agenda</span>
   <span class="header-sub" id="action-count"></span>
 </div>
 
@@ -101,10 +101,13 @@
 </div>
 
 <script type="module">
+import { glyph } from "/hub-sdk.js";
 import { esc, formatDate } from "./logic.js";
 
 const DB      = window.__DB_URL      ?? "";
 const CONTEXT = window.__CONTEXT_URL ?? "";
+
+document.getElementById("title-glyph").innerHTML = glyph("agenda");
 
 async function dbq(sql, params = []) {
   if (!DB) return { rows: [] };
@@ -158,9 +161,9 @@ async function init() {
     const dateStr = m.scheduled_at ? formatDate(m.scheduled_at) : "No date set";
     const isLive = m.status === "in-progress";
     nextSection.innerHTML = `
-      <div class="section-label">${isLive ? "🔴 In Progress" : "Next Meeting"}</div>
+      <div class="section-label">${isLive ? `${glyph("dot", { color: "#dc2626", accent: "#dc2626" })} In Progress` : "Next Meeting"}</div>
       <div class="next-meeting">
-        <div class="next-meeting-icon">${isLive ? "🔴" : "📅"}</div>
+        <div class="next-meeting-icon">${isLive ? glyph("dot", { color: "#dc2626", accent: "#dc2626" }) : glyph("calendar")}</div>
         <div>
           <div class="next-meeting-title">${esc(m.title || m.series_name || "Meeting")}</div>
           <div class="next-meeting-date">${esc(dateStr)}</div>
