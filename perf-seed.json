@@ -1,0 +1,1734 @@
+{
+  "seed": [
+    {
+      "sql": "INSERT INTO app_agenda__meeting_groups (id, name, description, recurrence, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-120 days','+0 minutes'))",
+      "params": [
+        "perf-ser-1",
+        "Family Council",
+        "Sunday evening check-in for the whole house.",
+        "weekly",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meeting_groups (id, name, description, recurrence, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-115 days','+0 minutes'))",
+      "params": [
+        "perf-ser-2",
+        "Budget Review",
+        "Monthly look at spending and savings goals.",
+        "monthly",
+        "adults",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meeting_groups (id, name, description, recurrence, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-70 days','+0 minutes'))",
+      "params": [
+        "perf-ser-3",
+        "Vacation Planning",
+        "Summer trip logistics.",
+        "custom",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meeting_groups (id, name, description, recurrence, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-60 days','+0 minutes'))",
+      "params": [
+        "perf-ser-4",
+        "Home Projects",
+        "What gets fixed, built or bought next.",
+        "monthly",
+        "adults",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meeting_groups (id, name, audience, created_by, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-40 days','+0 minutes'))",
+      "params": [
+        "perf-ser-5",
+        "School Year Kickoff",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT18:30:00','now','-56 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-65 days','+0 minutes'))",
+      "params": [
+        "perf-mt-fc-1",
+        "perf-ser-1",
+        "Family Council #1",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT18:30:00','now','-49 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-58 days','+1 minutes'))",
+      "params": [
+        "perf-mt-fc-2",
+        "perf-ser-1",
+        "Family Council #2",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT18:30:00','now','-42 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-51 days','+2 minutes'))",
+      "params": [
+        "perf-mt-fc-3",
+        "perf-ser-1",
+        "Family Council #3",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT18:30:00','now','-35 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-44 days','+3 minutes'))",
+      "params": [
+        "perf-mt-fc-4",
+        "perf-ser-1",
+        "Family Council #4",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "everyone",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT18:30:00','now','-28 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-37 days','+4 minutes'))",
+      "params": [
+        "perf-mt-fc-5",
+        "perf-ser-1",
+        "Family Council #5",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT18:30:00','now','-21 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 days','+5 minutes'))",
+      "params": [
+        "perf-mt-fc-6",
+        "perf-ser-1",
+        "Family Council #6",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT18:30:00','now','-14 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-23 days','+6 minutes'))",
+      "params": [
+        "perf-mt-fc-7",
+        "perf-ser-1",
+        "Family Council #7",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT18:30:00','now','-7 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-16 days','+7 minutes'))",
+      "params": [
+        "perf-mt-fc-8",
+        "perf-ser-1",
+        "Family Council #8",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "everyone",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT18:30:00','now','0 days'), ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-9 days','+8 minutes'))",
+      "params": [
+        "perf-mt-fc-9",
+        "perf-ser-1",
+        "Family Council #9",
+        "in-progress",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT18:30:00','now','7 days'), ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+9 minutes'))",
+      "params": [
+        "perf-mt-fc-10",
+        "perf-ser-1",
+        "Family Council #10",
+        "upcoming",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT20:00:00','now','-95 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-104 days','+10 minutes'))",
+      "params": [
+        "perf-mt-br-1",
+        "perf-ser-2",
+        "Budget Review July",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "adults",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT20:00:00','now','-65 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-74 days','+11 minutes'))",
+      "params": [
+        "perf-mt-br-2",
+        "perf-ser-2",
+        "Budget Review August",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "adults",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT20:00:00','now','-34 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-43 days','+12 minutes'))",
+      "params": [
+        "perf-mt-br-3",
+        "perf-ser-2",
+        "Budget Review September",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "adults",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT20:00:00','now','4 days'), ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+13 minutes'))",
+      "params": [
+        "perf-mt-br-4",
+        "perf-ser-2",
+        "Budget Review October",
+        "upcoming",
+        "adults",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT19:00:00','now','-60 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-69 days','+14 minutes'))",
+      "params": [
+        "perf-mt-vp-1",
+        "perf-ser-3",
+        "Pick the destination",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT19:00:00','now','-30 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-39 days','+15 minutes'))",
+      "params": [
+        "perf-mt-vp-2",
+        "perf-ser-3",
+        "Flights and lodging",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "everyone",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT19:00:00','now','12 days'), ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+16 minutes'))",
+      "params": [
+        "perf-mt-vp-3",
+        "perf-ser-3",
+        "Packing and pet sitter",
+        "upcoming",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT10:00:00','now','-45 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-54 days','+17 minutes'))",
+      "params": [
+        "perf-mt-hp-1",
+        "perf-ser-4",
+        "Fall maintenance list",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "adults",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT10:00:00','now','-15 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-24 days','+18 minutes'))",
+      "params": [
+        "perf-mt-hp-2",
+        "perf-ser-4",
+        "Kitchen refresh scope",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "adults",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT10:00:00','now','16 days'), ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+19 minutes'))",
+      "params": [
+        "perf-mt-hp-3",
+        "perf-ser-4",
+        "Winter prep",
+        "upcoming",
+        "adults",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, scheduled_at, status, notes, audience, created_by, created_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT17:00:00','now','-38 days'), ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+20 minutes'))",
+      "params": [
+        "perf-mt-sk-1",
+        "perf-ser-5",
+        "Routines and carpools",
+        "completed",
+        "Everyone attended. Decisions recorded on each item; follow-ups assigned below.",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-9 days','+21 minutes'))",
+      "params": [
+        "perf-mt-sk-2",
+        "perf-ser-5",
+        "Mid-term check-in",
+        "upcoming",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+1 minutes'))",
+      "params": [
+        "perf-it-01",
+        "perf-mt-fc-1",
+        "Screen time on school nights",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        0,
+        "discussed",
+        "Tabled until we have the numbers.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-56 days','+1 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-52 days','+1 minutes'))",
+      "params": [
+        "perf-ac-01",
+        "perf-mt-fc-1",
+        "perf-it-01",
+        "Update the chore chart",
+        "{{partner}}",
+        "{{date:-51}}",
+        "done",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+2 minutes'))",
+      "params": [
+        "perf-it-02",
+        "perf-mt-fc-1",
+        "Weekend plans",
+        "Raised last week; needs a decision this time.",
+        "{{child}}",
+        1,
+        "discussed",
+        "Keep as is for another month.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-56 days','+2 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-52 days','+2 minutes'))",
+      "params": [
+        "perf-ac-02",
+        "perf-mt-fc-1",
+        "Compare three insurance quotes",
+        "{{child}}",
+        "{{date:-51}}",
+        "done",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+3 minutes'))",
+      "params": [
+        "perf-it-03",
+        "perf-mt-fc-1",
+        "Allowance and savings jars",
+        "{{child2}}",
+        2,
+        "discussed",
+        "Approved with a $200 cap.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+4 minutes'))",
+      "params": [
+        "perf-it-04",
+        "perf-mt-fc-1",
+        "Dinner menu requests",
+        "Raised last week; needs a decision this time.",
+        "{{adult2}}",
+        3,
+        "discussed",
+        "Kids will draft a proposal.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-54 days','+5 minutes'))",
+      "params": [
+        "perf-it-05",
+        "perf-mt-fc-2",
+        "Carpool schedule",
+        "Raised last week; needs a decision this time.",
+        "{{me}}",
+        0,
+        "discussed",
+        "Agreed. Starts Monday.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-49 days','+3 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-45 days','+3 minutes'))",
+      "params": [
+        "perf-ac-03",
+        "perf-mt-fc-2",
+        "perf-it-05",
+        "Order the new router",
+        "{{me}}",
+        "{{date:-44}}",
+        "done",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-54 days','+6 minutes'))",
+      "params": [
+        "perf-it-06",
+        "perf-mt-fc-2",
+        "Pet care duties",
+        "{{partner}}",
+        1,
+        "discussed",
+        "Tabled until we have the numbers.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-49 days','+4 minutes'))",
+      "params": [
+        "perf-ac-04",
+        "perf-mt-fc-2",
+        "Email the teacher about pickup",
+        "{{child2}}",
+        "{{date:9}}",
+        "open",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-54 days','+7 minutes'))",
+      "params": [
+        "perf-it-07",
+        "perf-mt-fc-2",
+        "Homework corner setup",
+        "Raised last week; needs a decision this time.",
+        "{{child}}",
+        2,
+        "tabled",
+        "Keep as is for another month.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+8 minutes'))",
+      "params": [
+        "perf-it-08",
+        "perf-mt-fc-3",
+        "Grocery budget overage",
+        "Raised last week; needs a decision this time.",
+        "{{child2}}",
+        0,
+        "discussed",
+        "Approved with a $200 cap.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-42 days','+5 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-38 days','+5 minutes'))",
+      "params": [
+        "perf-ac-05",
+        "perf-mt-fc-3",
+        "perf-it-08",
+        "Price out flights",
+        "{{date:-37}}",
+        "done",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+9 minutes'))",
+      "params": [
+        "perf-it-09",
+        "perf-mt-fc-3",
+        "Car insurance renewal",
+        "{{adult2}}",
+        1,
+        "discussed",
+        "Kids will draft a proposal.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-42 days','+6 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-38 days','+6 minutes'))",
+      "params": [
+        "perf-ac-06",
+        "perf-mt-fc-3",
+        "Return the library books",
+        "{{me}}",
+        "{{date:-37}}",
+        "done",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-47 days','+10 minutes'))",
+      "params": [
+        "perf-it-10",
+        "perf-mt-fc-3",
+        "Holiday travel dates",
+        "Raised last week; needs a decision this time.",
+        "{{me}}",
+        2,
+        "discussed",
+        "Agreed. Starts Monday.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-40 days','+11 minutes'))",
+      "params": [
+        "perf-it-11",
+        "perf-mt-fc-4",
+        "Garage clean-out",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        0,
+        "discussed",
+        "Tabled until we have the numbers.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35 days','+7 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-31 days','+7 minutes'))",
+      "params": [
+        "perf-ac-07",
+        "perf-mt-fc-4",
+        "perf-it-11",
+        "Schedule the vet visit",
+        "{{partner}}",
+        "done",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-40 days','+12 minutes'))",
+      "params": [
+        "perf-it-12",
+        "perf-mt-fc-4",
+        "Gutter cleaning quote",
+        "{{child}}",
+        1,
+        "discussed",
+        "Keep as is for another month.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35 days','+8 minutes'))",
+      "params": [
+        "perf-ac-08",
+        "perf-mt-fc-4",
+        "Clean out the hall closet",
+        "{{child}}",
+        "{{date:2}}",
+        "open",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-40 days','+13 minutes'))",
+      "params": [
+        "perf-it-13",
+        "perf-mt-fc-4",
+        "Birthday party planning",
+        "Raised last week; needs a decision this time.",
+        "{{child2}}",
+        2,
+        "discussed",
+        "Approved with a $200 cap.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-40 days','+14 minutes'))",
+      "params": [
+        "perf-it-14",
+        "perf-mt-fc-4",
+        "Bedtime changes",
+        "Raised last week; needs a decision this time.",
+        "{{adult2}}",
+        3,
+        "tabled",
+        "Kids will draft a proposal.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+15 minutes'))",
+      "params": [
+        "perf-it-15",
+        "perf-mt-fc-5",
+        "Family movie pick",
+        "{{me}}",
+        0,
+        "discussed",
+        "Agreed. Starts Monday.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-28 days','+9 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-24 days','+9 minutes'))",
+      "params": [
+        "perf-ac-09",
+        "perf-mt-fc-5",
+        "perf-it-15",
+        "Set up the savings transfer",
+        "{{me}}",
+        "{{date:-23}}",
+        "done",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+16 minutes'))",
+      "params": [
+        "perf-it-16",
+        "perf-mt-fc-5",
+        "Chore rotation for next week",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        1,
+        "discussed",
+        "Tabled until we have the numbers.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-28 days','+10 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-24 days','+10 minutes'))",
+      "params": [
+        "perf-ac-10",
+        "perf-mt-fc-5",
+        "Buy poster board for the science fair",
+        "{{child2}}",
+        "{{date:-23}}",
+        "done",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+17 minutes'))",
+      "params": [
+        "perf-it-17",
+        "perf-mt-fc-5",
+        "Screen time on school nights",
+        "Raised last week; needs a decision this time.",
+        "{{child}}",
+        2,
+        "discussed",
+        "Keep as is for another month.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-26 days','+18 minutes'))",
+      "params": [
+        "perf-it-18",
+        "perf-mt-fc-6",
+        "Weekend plans",
+        "{{child2}}",
+        0,
+        "discussed",
+        "Approved with a $200 cap.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-21 days','+11 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-17 days','+11 minutes'))",
+      "params": [
+        "perf-ac-11",
+        "perf-mt-fc-6",
+        "perf-it-18",
+        "Call the gutter company",
+        "{{date:-16}}",
+        "done",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-26 days','+19 minutes'))",
+      "params": [
+        "perf-it-19",
+        "perf-mt-fc-6",
+        "Allowance and savings jars",
+        "Raised last week; needs a decision this time.",
+        "{{adult2}}",
+        1,
+        "discussed",
+        "Kids will draft a proposal.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-21 days','+12 minutes'))",
+      "params": [
+        "perf-ac-12",
+        "perf-mt-fc-6",
+        "Book the plumber",
+        "{{me}}",
+        "{{date:-3}}",
+        "open",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-26 days','+20 minutes'))",
+      "params": [
+        "perf-it-20",
+        "perf-mt-fc-6",
+        "Dinner menu requests",
+        "Raised last week; needs a decision this time.",
+        "{{me}}",
+        2,
+        "tabled",
+        "Agreed. Starts Monday.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-19 days','+21 minutes'))",
+      "params": [
+        "perf-it-21",
+        "perf-mt-fc-7",
+        "Carpool schedule",
+        "{{partner}}",
+        0,
+        "discussed",
+        "Tabled until we have the numbers.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-14 days','+13 minutes'))",
+      "params": [
+        "perf-ac-13",
+        "perf-mt-fc-7",
+        "perf-it-21",
+        "Update the chore chart",
+        "{{partner}}",
+        "{{date:0}}",
+        "open",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-19 days','+22 minutes'))",
+      "params": [
+        "perf-it-22",
+        "perf-mt-fc-7",
+        "Pet care duties",
+        "Raised last week; needs a decision this time.",
+        "{{child}}",
+        1,
+        "discussed",
+        "Keep as is for another month.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-14 days','+14 minutes'))",
+      "params": [
+        "perf-ac-14",
+        "perf-mt-fc-7",
+        "Compare three insurance quotes",
+        "{{child}}",
+        "open",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-19 days','+23 minutes'))",
+      "params": [
+        "perf-it-23",
+        "perf-mt-fc-7",
+        "Homework corner setup",
+        "Raised last week; needs a decision this time.",
+        "{{child2}}",
+        2,
+        "discussed",
+        "Approved with a $200 cap.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-19 days','+24 minutes'))",
+      "params": [
+        "perf-it-24",
+        "perf-mt-fc-7",
+        "Grocery budget overage",
+        "{{adult2}}",
+        3,
+        "discussed",
+        "Kids will draft a proposal.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-12 days','+25 minutes'))",
+      "params": [
+        "perf-it-25",
+        "perf-mt-fc-8",
+        "Car insurance renewal",
+        "Raised last week; needs a decision this time.",
+        "{{me}}",
+        0,
+        "discussed",
+        "Agreed. Starts Monday.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-7 days','+15 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-3 days','+15 minutes'))",
+      "params": [
+        "perf-ac-15",
+        "perf-mt-fc-8",
+        "perf-it-25",
+        "Order the new router",
+        "{{me}}",
+        "{{date:-2}}",
+        "done",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-12 days','+26 minutes'))",
+      "params": [
+        "perf-it-26",
+        "perf-mt-fc-8",
+        "Holiday travel dates",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        1,
+        "discussed",
+        "Tabled until we have the numbers.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-7 days','+16 minutes'))",
+      "params": [
+        "perf-ac-16",
+        "perf-mt-fc-8",
+        "Email the teacher about pickup",
+        "{{child2}}",
+        "{{date:9}}",
+        "open",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-12 days','+27 minutes'))",
+      "params": [
+        "perf-it-27",
+        "perf-mt-fc-8",
+        "Garage clean-out",
+        "{{child}}",
+        2,
+        "tabled",
+        "Keep as is for another month.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+28 minutes'))",
+      "params": [
+        "perf-it-28",
+        "perf-mt-fc-9",
+        "Gutter cleaning quote",
+        "Raised last week; needs a decision this time.",
+        "{{child2}}",
+        0,
+        "discussed",
+        "Approved with a $200 cap.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, due_date, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','0 days','+17 minutes'))",
+      "params": [
+        "perf-ac-17",
+        "perf-mt-fc-9",
+        "perf-it-28",
+        "Price out flights",
+        "{{date:14}}",
+        "open",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+29 minutes'))",
+      "params": [
+        "perf-it-29",
+        "perf-mt-fc-9",
+        "Birthday party planning",
+        "Raised last week; needs a decision this time.",
+        "{{adult2}}",
+        1,
+        "pending",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','0 days','+18 minutes'))",
+      "params": [
+        "perf-ac-18",
+        "perf-mt-fc-9",
+        "Return the library books",
+        "{{me}}",
+        "{{date:-3}}",
+        "open",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+30 minutes'))",
+      "params": [
+        "perf-it-30",
+        "perf-mt-fc-9",
+        "Bedtime changes",
+        "{{me}}",
+        2,
+        "pending",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+31 minutes'))",
+      "params": [
+        "perf-it-31",
+        "perf-mt-fc-10",
+        "Family movie pick",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        0,
+        "pending",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+32 minutes'))",
+      "params": [
+        "perf-it-32",
+        "perf-mt-fc-10",
+        "Chore rotation for next week",
+        "Raised last week; needs a decision this time.",
+        "{{child}}",
+        1,
+        "pending",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+33 minutes'))",
+      "params": [
+        "perf-it-33",
+        "perf-mt-fc-10",
+        "Screen time on school nights",
+        "{{child2}}",
+        2,
+        "pending",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-100 days','+34 minutes'))",
+      "params": [
+        "perf-it-34",
+        "perf-mt-br-1",
+        "Weekend plans",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        0,
+        "discussed",
+        "Kids will draft a proposal.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-95 days','+19 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-91 days','+19 minutes'))",
+      "params": [
+        "perf-ac-19",
+        "perf-mt-br-1",
+        "perf-it-34",
+        "Schedule the vet visit",
+        "{{me}}",
+        "{{date:-90}}",
+        "done",
+        "adults",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-100 days','+35 minutes'))",
+      "params": [
+        "perf-it-35",
+        "perf-mt-br-1",
+        "Allowance and savings jars",
+        "Raised last week; needs a decision this time.",
+        "{{adult2}}",
+        1,
+        "discussed",
+        "Agreed. Starts Monday.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-95 days','+20 minutes'))",
+      "params": [
+        "perf-ac-20",
+        "perf-mt-br-1",
+        "Clean out the hall closet",
+        "{{me}}",
+        "{{date:2}}",
+        "open",
+        "adults",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-100 days','+36 minutes'))",
+      "params": [
+        "perf-it-36",
+        "perf-mt-br-1",
+        "Dinner menu requests",
+        "{{me}}",
+        2,
+        "discussed",
+        "Tabled until we have the numbers.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-70 days','+37 minutes'))",
+      "params": [
+        "perf-it-37",
+        "perf-mt-br-2",
+        "Carpool schedule",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        0,
+        "discussed",
+        "Keep as is for another month.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-65 days','+21 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+21 minutes'))",
+      "params": [
+        "perf-ac-21",
+        "perf-mt-br-2",
+        "perf-it-37",
+        "Set up the savings transfer",
+        "{{partner}}",
+        "done",
+        "adults",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-70 days','+38 minutes'))",
+      "params": [
+        "perf-it-38",
+        "perf-mt-br-2",
+        "Pet care duties",
+        "Raised last week; needs a decision this time.",
+        "{{adult2}}",
+        1,
+        "discussed",
+        "Approved with a $200 cap.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-65 days','+22 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-61 days','+22 minutes'))",
+      "params": [
+        "perf-ac-22",
+        "perf-mt-br-2",
+        "Buy poster board for the science fair",
+        "{{adult2}}",
+        "{{date:-60}}",
+        "done",
+        "adults",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-70 days','+39 minutes'))",
+      "params": [
+        "perf-it-39",
+        "perf-mt-br-2",
+        "Homework corner setup",
+        "{{me}}",
+        2,
+        "tabled",
+        "Kids will draft a proposal.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-39 days','+40 minutes'))",
+      "params": [
+        "perf-it-40",
+        "perf-mt-br-3",
+        "Grocery budget overage",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        0,
+        "discussed",
+        "Agreed. Starts Monday.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+23 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 days','+23 minutes'))",
+      "params": [
+        "perf-ac-23",
+        "perf-mt-br-3",
+        "perf-it-40",
+        "Call the gutter company",
+        "{{me}}",
+        "{{date:-29}}",
+        "done",
+        "adults",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-39 days','+41 minutes'))",
+      "params": [
+        "perf-it-41",
+        "perf-mt-br-3",
+        "Car insurance renewal",
+        "Raised last week; needs a decision this time.",
+        "{{adult2}}",
+        1,
+        "discussed",
+        "Tabled until we have the numbers.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+24 minutes'))",
+      "params": [
+        "perf-ac-24",
+        "perf-mt-br-3",
+        "Book the plumber",
+        "{{me}}",
+        "{{date:-3}}",
+        "open",
+        "adults",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-39 days','+42 minutes'))",
+      "params": [
+        "perf-it-42",
+        "perf-mt-br-3",
+        "Holiday travel dates",
+        "{{me}}",
+        2,
+        "discussed",
+        "Keep as is for another month.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-39 days','+43 minutes'))",
+      "params": [
+        "perf-it-43",
+        "perf-mt-br-3",
+        "Garage clean-out",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        3,
+        "discussed",
+        "Approved with a $200 cap.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+44 minutes'))",
+      "params": [
+        "perf-it-44",
+        "perf-mt-br-4",
+        "Gutter cleaning quote",
+        "Raised last week; needs a decision this time.",
+        "{{adult2}}",
+        0,
+        "pending",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+45 minutes'))",
+      "params": [
+        "perf-it-45",
+        "perf-mt-br-4",
+        "Birthday party planning",
+        "{{me}}",
+        1,
+        "pending",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+46 minutes'))",
+      "params": [
+        "perf-it-46",
+        "perf-mt-br-4",
+        "Bedtime changes",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        2,
+        "pending",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-65 days','+47 minutes'))",
+      "params": [
+        "perf-it-47",
+        "perf-mt-vp-1",
+        "Family movie pick",
+        "Raised last week; needs a decision this time.",
+        "{{child}}",
+        0,
+        "discussed",
+        "Keep as is for another month.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-60 days','+25 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-56 days','+25 minutes'))",
+      "params": [
+        "perf-ac-25",
+        "perf-mt-vp-1",
+        "perf-it-47",
+        "Update the chore chart",
+        "{{partner}}",
+        "{{date:-55}}",
+        "done",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-65 days','+48 minutes'))",
+      "params": [
+        "perf-it-48",
+        "perf-mt-vp-1",
+        "Chore rotation for next week",
+        "{{child2}}",
+        1,
+        "discussed",
+        "Approved with a $200 cap.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-60 days','+26 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-56 days','+26 minutes'))",
+      "params": [
+        "perf-ac-26",
+        "perf-mt-vp-1",
+        "Compare three insurance quotes",
+        "{{child}}",
+        "{{date:-55}}",
+        "done",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-65 days','+49 minutes'))",
+      "params": [
+        "perf-it-49",
+        "perf-mt-vp-1",
+        "Screen time on school nights",
+        "Raised last week; needs a decision this time.",
+        "{{adult2}}",
+        2,
+        "discussed",
+        "Kids will draft a proposal.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35 days','+50 minutes'))",
+      "params": [
+        "perf-it-50",
+        "perf-mt-vp-2",
+        "Weekend plans",
+        "Raised last week; needs a decision this time.",
+        "{{me}}",
+        0,
+        "discussed",
+        "Agreed. Starts Monday.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 days','+27 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-26 days','+27 minutes'))",
+      "params": [
+        "perf-ac-27",
+        "perf-mt-vp-2",
+        "perf-it-50",
+        "Order the new router",
+        "{{me}}",
+        "{{date:-25}}",
+        "done",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35 days','+51 minutes'))",
+      "params": [
+        "perf-it-51",
+        "perf-mt-vp-2",
+        "Allowance and savings jars",
+        "{{partner}}",
+        1,
+        "discussed",
+        "Tabled until we have the numbers.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 days','+28 minutes'))",
+      "params": [
+        "perf-ac-28",
+        "perf-mt-vp-2",
+        "Email the teacher about pickup",
+        "{{child2}}",
+        "open",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35 days','+52 minutes'))",
+      "params": [
+        "perf-it-52",
+        "perf-mt-vp-2",
+        "Dinner menu requests",
+        "Raised last week; needs a decision this time.",
+        "{{child}}",
+        2,
+        "discussed",
+        "Keep as is for another month.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35 days','+53 minutes'))",
+      "params": [
+        "perf-it-53",
+        "perf-mt-vp-2",
+        "Carpool schedule",
+        "Raised last week; needs a decision this time.",
+        "{{child2}}",
+        3,
+        "tabled",
+        "Approved with a $200 cap.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+54 minutes'))",
+      "params": [
+        "perf-it-54",
+        "perf-mt-vp-3",
+        "Pet care duties",
+        "{{adult2}}",
+        0,
+        "pending",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+55 minutes'))",
+      "params": [
+        "perf-it-55",
+        "perf-mt-vp-3",
+        "Homework corner setup",
+        "Raised last week; needs a decision this time.",
+        "{{me}}",
+        1,
+        "pending",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+56 minutes'))",
+      "params": [
+        "perf-it-56",
+        "perf-mt-vp-3",
+        "Grocery budget overage",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        2,
+        "pending",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-50 days','+57 minutes'))",
+      "params": [
+        "perf-it-57",
+        "perf-mt-hp-1",
+        "Car insurance renewal",
+        "{{me}}",
+        0,
+        "discussed",
+        "Keep as is for another month.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-45 days','+29 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-41 days','+29 minutes'))",
+      "params": [
+        "perf-ac-29",
+        "perf-mt-hp-1",
+        "perf-it-57",
+        "Price out flights",
+        "{{partner}}",
+        "{{date:-40}}",
+        "done",
+        "adults",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-50 days','+58 minutes'))",
+      "params": [
+        "perf-it-58",
+        "perf-mt-hp-1",
+        "Holiday travel dates",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        1,
+        "discussed",
+        "Approved with a $200 cap.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-45 days','+30 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-41 days','+30 minutes'))",
+      "params": [
+        "perf-ac-30",
+        "perf-mt-hp-1",
+        "Return the library books",
+        "{{adult2}}",
+        "{{date:-40}}",
+        "done",
+        "adults",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-50 days','+59 minutes'))",
+      "params": [
+        "perf-it-59",
+        "perf-mt-hp-1",
+        "Garage clean-out",
+        "Raised last week; needs a decision this time.",
+        "{{adult2}}",
+        2,
+        "tabled",
+        "Kids will draft a proposal.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-20 days','+60 minutes'))",
+      "params": [
+        "perf-it-60",
+        "perf-mt-hp-2",
+        "Gutter cleaning quote",
+        "{{me}}",
+        0,
+        "discussed",
+        "Agreed. Starts Monday.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-15 days','+31 minutes'))",
+      "params": [
+        "perf-ac-31",
+        "perf-mt-hp-2",
+        "perf-it-60",
+        "Schedule the vet visit",
+        "{{me}}",
+        "{{date:0}}",
+        "open",
+        "adults",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-20 days','+61 minutes'))",
+      "params": [
+        "perf-it-61",
+        "perf-mt-hp-2",
+        "Birthday party planning",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        1,
+        "discussed",
+        "Tabled until we have the numbers.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-15 days','+32 minutes'))",
+      "params": [
+        "perf-ac-32",
+        "perf-mt-hp-2",
+        "Clean out the hall closet",
+        "{{me}}",
+        "{{date:2}}",
+        "open",
+        "adults",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-20 days','+62 minutes'))",
+      "params": [
+        "perf-it-62",
+        "perf-mt-hp-2",
+        "Bedtime changes",
+        "Raised last week; needs a decision this time.",
+        "{{adult2}}",
+        2,
+        "discussed",
+        "Keep as is for another month.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-20 days','+63 minutes'))",
+      "params": [
+        "perf-it-63",
+        "perf-mt-hp-2",
+        "Family movie pick",
+        "{{me}}",
+        3,
+        "discussed",
+        "Approved with a $200 cap.",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+64 minutes'))",
+      "params": [
+        "perf-it-64",
+        "perf-mt-hp-3",
+        "Chore rotation for next week",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        0,
+        "pending",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+65 minutes'))",
+      "params": [
+        "perf-it-65",
+        "perf-mt-hp-3",
+        "Screen time on school nights",
+        "Raised last week; needs a decision this time.",
+        "{{adult2}}",
+        1,
+        "pending",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 days','+66 minutes'))",
+      "params": [
+        "perf-it-66",
+        "perf-mt-hp-3",
+        "Weekend plans",
+        "{{me}}",
+        2,
+        "pending",
+        "adults"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-43 days','+67 minutes'))",
+      "params": [
+        "perf-it-67",
+        "perf-mt-sk-1",
+        "Allowance and savings jars",
+        "Raised last week; needs a decision this time.",
+        "{{child}}",
+        0,
+        "discussed",
+        "Keep as is for another month.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, agenda_item_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-38 days','+33 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+33 minutes'))",
+      "params": [
+        "perf-ac-33",
+        "perf-mt-sk-1",
+        "perf-it-67",
+        "Set up the savings transfer",
+        "{{me}}",
+        "{{date:-33}}",
+        "done",
+        "everyone",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-43 days','+68 minutes'))",
+      "params": [
+        "perf-it-68",
+        "perf-mt-sk-1",
+        "Dinner menu requests",
+        "Raised last week; needs a decision this time.",
+        "{{child2}}",
+        1,
+        "discussed",
+        "Approved with a $200 cap.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__action_items (id, meeting_id, title, assigned_to, due_date, status, audience, created_by, created_at, completed_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-38 days','+34 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+34 minutes'))",
+      "params": [
+        "perf-ac-34",
+        "perf-mt-sk-1",
+        "Buy poster board for the science fair",
+        "{{child2}}",
+        "{{date:-33}}",
+        "done",
+        "everyone",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, resolution, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-43 days','+69 minutes'))",
+      "params": [
+        "perf-it-69",
+        "perf-mt-sk-1",
+        "Carpool schedule",
+        "{{adult2}}",
+        2,
+        "discussed",
+        "Kids will draft a proposal.",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+70 minutes'))",
+      "params": [
+        "perf-it-70",
+        "perf-mt-sk-2",
+        "Pet care duties",
+        "Raised last week; needs a decision this time.",
+        "{{me}}",
+        0,
+        "pending",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, description, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+71 minutes'))",
+      "params": [
+        "perf-it-71",
+        "perf-mt-sk-2",
+        "Homework corner setup",
+        "Raised last week; needs a decision this time.",
+        "{{partner}}",
+        1,
+        "pending",
+        "everyone"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_agenda__agenda_items (id, meeting_id, title, submitted_by, sort_order, status, audience, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+72 minutes'))",
+      "params": [
+        "perf-it-72",
+        "perf-mt-sk-2",
+        "Grocery budget overage",
+        "{{child}}",
+        2,
+        "pending",
+        "everyone"
+      ]
+    }
+  ]
+}
