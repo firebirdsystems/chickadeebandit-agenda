@@ -80,6 +80,33 @@
         { "action": "expectVisible", "as": "parent", "selector": "[data-testid=\"agenda-row\"][data-item-id=\"ui-i-kid\"]" },
         { "action": "expectCount", "as": "parent", "selector": "[data-testid=\"agenda-item-delete\"]", "count": 2 }
       ]
+    },
+    {
+      "name": "a series whose meetings cannot be read says so instead of showing none, and Try again loads them",
+      "members": { "parent": "adult" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meeting_groups (id, name, audience, created_by, created_at) VALUES ('ui-gf', ?, 'everyone', ?, datetime('now'))",
+          "params": ["Family Council", "{{parent}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_agenda__meetings (id, group_id, title, status, audience, created_by, created_at) VALUES ('ui-mf', 'ui-gf', ?, 'upcoming', 'everyone', ?, datetime('now'))",
+          "params": ["March Council", "{{parent}}"]
+        },
+        { "action": "open", "as": "parent" },
+        { "action": "expectVisible", "as": "parent", "selector": "[data-testid=\"series-card\"][data-series-id=\"ui-gf\"]" },
+        { "action": "fault", "as": "parent", "mode": "down" },
+        { "action": "click", "as": "parent", "selector": "[data-testid=\"series-card\"][data-series-id=\"ui-gf\"]" },
+        { "action": "expectText", "as": "parent", "selector": "[data-testid=\"load-error\"]", "text": "Couldn’t load meetings." },
+        { "action": "expectNoText", "as": "parent", "text": "No meetings yet." },
+        { "action": "expectNoText", "as": "parent", "text": "Loading…" },
+        { "action": "fault", "as": "parent", "mode": "none" },
+        { "action": "click", "as": "parent", "selector": "[data-testid=\"load-retry\"]" },
+        { "action": "expectVisible", "as": "parent", "selector": "[data-testid=\"meeting-card\"][data-meeting-id=\"ui-mf\"]" },
+        { "action": "expectCount", "as": "parent", "selector": "[data-testid=\"load-error\"]", "count": 0 }
+      ]
     }
   ]
 }

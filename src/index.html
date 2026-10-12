@@ -330,9 +330,22 @@ async function dbq(sql, params = []) {
 async function dbChange(sql, params = []) {
   const json = await dbq(sql, params);
   if (DB && json.changed === 0) {
-    throw new Error(`Nothing was changed. Only the person who added this, or ${TENANT.tenantKind === "household" ? "an adult" : "the steward"}, can change it.`);
+    // Marked as wording written for the reader, so the page can show it as is.
+    throw Object.assign(new Error(`Nothing was changed. Only the person who added this, or ${TENANT.tenantKind === "household" ? "an adult" : "the steward"}, can change it.`), { forUser: true });
   }
   return json;
+}
+
+// What a failed write shows: this app's own wording when the error carries it,
+// otherwise one fixed line. The hub's own error text only goes to the console.
+function failText(e, line) {
+  if (!e?.forUser) console.error("[agenda] write failed:", e);
+  return e?.forUser ? e.message : line;
+}
+function alertFailed(what, e) {
+  if (!e?.forUser) console.error("[agenda] write failed:", e);
+  if (e?.forUser) hubAlert(`Couldn’t ${what}`, { description: e.message });
+  else hubAlert(`Couldn’t ${what} — try again.`);
 }
 
 function uuid() { return crypto.randomUUID(); }
@@ -420,6 +433,7 @@ function enforceableAudience(a) {
 // ── Navigation ────────────────────────────────────────────────────────────────
 async function navigateTo(newView, opts = {}) {
   view = newView;
+  const failed = (what) => renderViewLoadError(what, () => navigateTo(newView, opts));
   if (newView === "home") {
     currentSeries  = null;
     currentMeeting = null;
@@ -431,18 +445,29 @@ async function navigateTo(newView, opts = {}) {
     currentMeeting = null;
     meetings = [];
     renderSeries(true);
-    await loadMeetings(currentSeries.id);
+    try { await loadMeetings(currentSeries.id); } catch { return failed("meetings"); }
     renderSeries();
   } else if (newView === "meeting") {
     currentMeeting = opts.meeting;
-    await loadMeetingDetail(currentMeeting.id);
+    try { await loadMeetingDetail(currentMeeting.id); } catch { return failed("this meeting"); }
     renderMeeting();
   } else if (newView === "actions") {
     currentSeries  = null;
     currentMeeting = null;
-    await loadAllOpenActions();
+    try { await loadAllOpenActions(); } catch { return failed("action items"); }
     renderActions();
   }
+}
+
+// A view whose read failed says so with the failed-load banner, never the view
+// drawn empty or left on "Loading…". "Try again" re-runs that view's load.
+let retryLoad = () => firstLoad();
+function renderViewLoadError(what, retry) {
+  retryLoad = retry;
+  document.getElementById("app").innerHTML = `
+    <button class="back-btn" id="btn-back">← Back to series</button>
+    <div class="load-error" data-testid="load-error" role="alert"><span>Couldn’t load ${what}.</span> <button type="button" class="load-error-retry" data-testid="load-retry">Try again</button></div>`;
+  document.getElementById("btn-back")?.addEventListener("click", () => navigateTo("home"));
 }
 
 // ── Render: Home ──────────────────────────────────────────────────────────────
@@ -877,7 +902,7 @@ function openNewSeriesModal() {
       closeModal();
       await navigateTo("home");
     } catch (e) {
-      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
+      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(failText(e, "Couldn’t create the series — try again."))}</div>`;
       btn.disabled = false; btn.textContent = "Create Series";
     }
   });
@@ -942,7 +967,7 @@ function openScheduleModal() {
       closeModal();
       await navigateTo("series", { series: currentSeries });
     } catch (e) {
-      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
+      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(failText(e, "Couldn’t schedule the meeting — try again."))}</div>`;
       btn.disabled = false; btn.textContent = "Schedule";
     }
   });
@@ -991,7 +1016,7 @@ function openEditMeetingModal() {
       closeModal();
       renderMeeting();
     } catch (e) {
-      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
+      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(failText(e, "Couldn’t save the meeting — try again."))}</div>`;
       btn.disabled = false; btn.textContent = "Save";
     }
   });
@@ -1042,7 +1067,7 @@ function openAddItemModal() {
       closeModal();
       renderMeeting();
     } catch (e) {
-      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
+      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(failText(e, "Couldn’t add the agenda item — try again."))}</div>`;
       btn.disabled = false; btn.textContent = "Add Item";
     }
   });
@@ -1103,7 +1128,7 @@ function openAddActionModal(agendaItemId = null) {
       closeModal();
       renderMeeting();
     } catch (e) {
-      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(e.message)}</div>`;
+      document.getElementById("modal-error").innerHTML = `<div class="error-msg">${esc(failText(e, "Couldn’t add the action item — try again."))}</div>`;
       btn.disabled = false; btn.textContent = "Add Action";
     }
   });
@@ -1125,7 +1150,7 @@ async function updateMeetingStatus(status) {
   try {
     await dbChange(`UPDATE app_agenda__meetings SET status = ? WHERE id = ?`, [status, currentMeeting.id]);
   } catch (e) {
-    hubAlert("Could not update the meeting", { description: e.message });
+    alertFailed("update the meeting", e);
     return;
   }
   currentMeeting = { ...currentMeeting, status };
@@ -1146,7 +1171,7 @@ async function deleteMeeting() {
     await dbq(`DELETE FROM app_agenda__agenda_items WHERE meeting_id = ?`, [currentMeeting.id]);
     await dbChange(`DELETE FROM app_agenda__meetings WHERE id = ?`, [currentMeeting.id]);
   } catch (e) {
-    hubAlert("Could not delete the meeting", { description: `${e.message} — try again.` });
+    alertFailed("delete the meeting", e);
     return;
   }
   syncMeetingsToStore().catch((e) => console.error("[agenda] syncMeetingsToStore failed:", e));
@@ -1162,7 +1187,7 @@ async function markItemStatus(itemId, status, resolution) {
   } catch (e) {
     agendaItems = prev;
     renderMeeting();
-    hubAlert("Could not update the agenda item", { description: e.message });
+    alertFailed("update the agenda item", e);
   }
 }
 
@@ -1200,7 +1225,7 @@ async function deleteAgendaItem(itemId) {
   try {
     await dbChange(`DELETE FROM app_agenda__agenda_items WHERE id = ?`, [itemId]);
   } catch (e) {
-    hubAlert("Could not remove the agenda item", { description: e.message });
+    alertFailed("remove the agenda item", e);
     return;
   }
   agendaItems = agendaItems.filter(i => i.id !== itemId);
@@ -1218,7 +1243,7 @@ async function toggleActionDone(actionId, done) {
   } catch (e) {
     actionItems = prev;
     renderMeeting();
-    hubAlert("Could not update the action item", { description: e.message });
+    alertFailed("update the action item", e);
   }
 }
 
@@ -1230,7 +1255,7 @@ async function saveNotes() {
     await dbChange(`UPDATE app_agenda__meetings SET notes = ? WHERE id = ?`, [notes, currentMeeting.id]);
   } catch (e) {
     if (status) status.textContent = "Save failed";
-    hubAlert("Could not save notes", { description: e.message });
+    alertFailed("save the notes", e);
     return;
   }
   currentMeeting = { ...currentMeeting, notes };
@@ -1297,13 +1322,14 @@ async function init() {
 
 function firstLoad() {
   return init().catch(() => {
+    retryLoad = () => firstLoad();
     document.getElementById("app").innerHTML = `
       <div class="page-header"><h1>${glyph("agenda")} Agenda</h1></div>
       <div class="load-error" data-testid="load-error" role="alert"><span>Couldn’t load meetings.</span> <button type="button" class="load-error-retry" data-testid="load-retry">Try again</button></div>`;
   });
 }
 document.addEventListener("click", (e) => {
-  if (e.target.closest('[data-testid="load-retry"]')) firstLoad();
+  if (e.target.closest('[data-testid="load-retry"]')) retryLoad();
 });
 firstLoad();
 </script>

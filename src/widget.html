@@ -59,6 +59,7 @@
     .action-title { font-size: 12px; color: var(--hub-text, #111827); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .action-assignee { font-size: 11px; color: #9ca3af; flex-shrink: 0; }
 
+    .load-error { margin: 8px; padding: 8px 10px; border-radius: 10px; background: var(--hub-tint-danger, #fee2e2); color: var(--hub-tint-danger-fg, #b91c1c); font-size: 0.8rem; }
     .empty-msg { font-size: 12px; color: #9ca3af; }
 
     .footer {
@@ -125,13 +126,14 @@ async function dbq(sql, params = []) {
 // own tables, so `family_members` cannot be joined in `dbq`.
 async function loadMemberMap() {
   if (!CONTEXT) return {};
-  try {
-    const res = await fetch(`${CONTEXT}?keys=family.members`);
-    const data = await res.json();
-    return Object.fromEntries((data["family.members"] ?? []).map(m => [m.id, m]));
-  } catch {
-    return {};
+  const res = await fetch(`${CONTEXT}?keys=family.members`);
+  const data = await res.json().catch(() => null);
+  // A member list the hub could not read (not OK, not JSON, or named in
+  // `$errors`) is a failed load. A key merely absent is "not permitted".
+  if (!res.ok || !data || typeof data !== "object" || (Array.isArray(data.$errors) && data.$errors.includes("family.members"))) {
+    throw new Error("Couldn’t load the member list.");
   }
+  return Object.fromEntries((data["family.members"] ?? []).map(m => [m.id, m]));
 }
 
 async function init() {
@@ -202,10 +204,9 @@ async function init() {
 
 // A failed read says so: "Nothing scheduled" would be a claim about the data.
 init().catch(() => {
-  document.getElementById("next-section").innerHTML = `
-    <div class="section-label">Next Meeting</div>
-    <div class="empty-msg">Couldn’t load. Open Agenda to try again.</div>
-  `;
+  document.getElementById("next-section").innerHTML = `<div class="load-error" data-testid="load-error" role="alert">Couldn’t load the agenda.</div>`;
+  // An empty "Open Actions" list would be a claim too.
+  document.getElementById("actions-list").parentElement.style.display = "none";
 });
 </script>
 </body>
