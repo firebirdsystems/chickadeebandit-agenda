@@ -5,6 +5,7 @@ import {
   sortAgendaItems, pendingItems, discussedItems,
   countOpenActionItems, openActionItems, filterActionItemsByAssignee,
   suggestNextDate, formatDate, formatDateShort, formatDueDate, searchableFields,
+  supervisesMeetings, canChangeRow, canManageMeeting,
 } from "../src/logic.js";
 
 // ── isAdult ───────────────────────────────────────────────────────────────────
@@ -209,5 +210,71 @@ describe("searchableFields", () => {
   it("matches on the series description, not just its name", () => {
     expect(searchableFields({ name: "Board", description: "monthly trustees meeting" }))
       .toContain("monthly trustees meeting");
+  });
+});
+
+// ── Who may change a row ──────────────────────────────────────────────────────
+const ADULT = { id: "a1", role: "adult" };
+const CHILD = { id: "c1", role: "child" };
+const PARTICIPANT = { tenantKind: "shared_space", spaceKind: "general", isAdmin: false };
+const STEWARD = { tenantKind: "shared_space", spaceKind: "general", isAdmin: true };
+const COPARENT_STEWARD = { tenantKind: "shared_space", spaceKind: "coparenting", isAdmin: true };
+
+describe("supervisesMeetings", () => {
+  it("is every adult in a household, which is the default", () => {
+    expect(supervisesMeetings(ADULT)).toBe(true);
+    expect(supervisesMeetings(ADULT, { tenantKind: "household" })).toBe(true);
+  });
+  it("is never a child or nobody", () => {
+    expect(supervisesMeetings(CHILD)).toBe(false);
+    expect(supervisesMeetings(null)).toBe(false);
+  });
+  it("is not an adult who takes part in a shared space", () => {
+    expect(supervisesMeetings(ADULT, PARTICIPANT)).toBe(false);
+  });
+  it("is the steward of a shared space, co-parenting included", () => {
+    expect(supervisesMeetings(ADULT, STEWARD)).toBe(true);
+    expect(supervisesMeetings(ADULT, COPARENT_STEWARD)).toBe(true);
+  });
+});
+
+describe("canChangeRow", () => {
+  it("lets a row's creator change it anywhere", () => {
+    expect(canChangeRow("c1", CHILD)).toBe(true);
+    expect(canChangeRow("a1", ADULT, PARTICIPANT)).toBe(true);
+  });
+  it("lets a household adult change another member's row", () => {
+    expect(canChangeRow("c1", ADULT)).toBe(true);
+  });
+  it("refuses a child on another member's row", () => {
+    expect(canChangeRow("a1", CHILD)).toBe(false);
+  });
+  it("refuses a space participant on another member's row", () => {
+    expect(canChangeRow("other", ADULT, PARTICIPANT)).toBe(false);
+  });
+  it("lets the steward change another member's row", () => {
+    expect(canChangeRow("other", ADULT, STEWARD)).toBe(true);
+  });
+  it("refuses when there is no member", () => {
+    expect(canChangeRow("a1", null)).toBe(false);
+  });
+});
+
+describe("canManageMeeting", () => {
+  const mine = { id: "m1", created_by: "a1" };
+  const theirs = { id: "m2", created_by: "other" };
+  it("lets a household adult run any meeting", () => {
+    expect(canManageMeeting(mine, ADULT)).toBe(true);
+    expect(canManageMeeting(theirs, ADULT)).toBe(true);
+  });
+  it("never offers a child the controls, even on their own meeting", () => {
+    expect(canManageMeeting({ id: "m3", created_by: "c1" }, CHILD)).toBe(false);
+  });
+  it("lets a space participant run only the meeting they scheduled", () => {
+    expect(canManageMeeting(mine, ADULT, PARTICIPANT)).toBe(true);
+    expect(canManageMeeting(theirs, ADULT, PARTICIPANT)).toBe(false);
+  });
+  it("lets the steward run any meeting", () => {
+    expect(canManageMeeting(theirs, ADULT, STEWARD)).toBe(true);
   });
 });

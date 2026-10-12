@@ -250,6 +250,8 @@
       background: var(--surface, var(--card, #fff)); color: var(--text, inherit);
     }
     .search-input:focus { outline: none; border-color: var(--accent, #6366f1); }
+    .load-error { margin: 0 0 12px; padding: 10px 14px; border-radius: 10px; background: var(--hub-tint-danger, #fee2e2); color: var(--hub-tint-danger-fg, #b91c1c); font-size: 0.9rem; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+    .load-error-retry { background: none; border: 1px solid currentColor; border-radius: 8px; padding: 5px 10px; font: inherit; font-weight: 600; color: inherit; cursor: pointer; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -264,6 +266,7 @@ import {
   sortAgendaItems, pendingItems, discussedItems,
   countOpenActionItems, openActionItems, filterActionItemsByAssignee,
   suggestNextDate, formatDate, formatDateShort, formatDueDate, avatarHtml, searchableFields,
+  supervisesMeetings, canChangeRow, canManageMeeting,
 } from "./logic.js";
 import { hubConfirm, hubAlert, searchMatch, glyph } from "/hub-sdk.js";
 
@@ -273,6 +276,11 @@ const DB         = window.__DB_URL      ?? "";
 const STORE_URL  = window.__STORE_URL   ?? "";
 const HUB_MEMBER = window.__CURRENT_MEMBER ?? null;
 const EVENTS     = window.__EVENTS_URL     ?? "";
+// Where the app is running. Any adult may change another member's row in a
+// household; in a shared space only the steward may. The hub decides; this
+// only keeps the page from offering a button that would change nothing.
+const TENANT     = { tenantKind: window.__TENANT_KIND ?? "household", spaceKind: window.__SPACE_KIND ?? null, isAdmin: window.__IS_ADMIN === true };
+const canChange  = (ownerId) => canChangeRow(ownerId, HUB_MEMBER, TENANT);
 
 // Best-effort: the row is already written, so a failed publish is not fatal.
 async function publishEvent(type, subjectId, payload = {}) {
@@ -311,8 +319,19 @@ async function dbq(sql, params = []) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sql, params }),
   });
-  const json = await res.json();
-  if (json.error) throw new Error(json.error);
+  const json = await res.json().catch(() => null);
+  if (!res.ok || !json || typeof json !== "object" || json.error) throw new Error(json?.error || "That could not be saved");
+  return json;
+}
+
+// An UPDATE or DELETE of one row by id. The hub narrows a write to the rows the
+// caller may change and answers 200 with `changed: 0` when that leaves none, so
+// a write that changed nothing is reported as a failure.
+async function dbChange(sql, params = []) {
+  const json = await dbq(sql, params);
+  if (DB && json.changed === 0) {
+    throw new Error(`Nothing was changed. Only the person who added this, or ${TENANT.tenantKind === "household" ? "an adult" : "the steward"}, can change it.`);
+  }
   return json;
 }
 
@@ -322,13 +341,16 @@ function now()  { return new Date().toISOString(); }
 // ── Data loading ──────────────────────────────────────────────────────────────
 async function loadContext() {
   if (!CONTEXT) return;
-  try {
-    const res = await fetch(`${CONTEXT}?keys=family.members,family.groups`);
-    const data = await res.json();
-    members   = data["family.members"] ?? [];
-    memberMap = Object.fromEntries(members.map(m => [m.id, m]));
-    hubGroups = data["family.groups"] ?? [];
-  } catch { /* non-fatal */ }
+  // A failed read is a failed load: an empty roster would hide every name and
+  // quietly switch off the supervisor checks.
+  const res = await fetch(`${CONTEXT}?keys=family.members,family.groups`);
+  const data = await res.json().catch(() => null);
+  if (!res.ok || !data || typeof data !== "object") throw new Error("Couldn’t load members");
+  // A 200 can still name a key the hub failed to read: that is a failed load too.
+  if (Array.isArray(data.$errors) && ["family.members", "family.groups"].some((k) => data.$errors.includes(k))) throw new Error("Couldn’t load members");
+  members   = data["family.members"] ?? [];
+  memberMap = Object.fromEntries(members.map(m => [m.id, m]));
+  hubGroups = data["family.groups"] ?? [];
 }
 
 async function loadSeries() {
@@ -402,7 +424,8 @@ async function navigateTo(newView, opts = {}) {
     currentSeries  = null;
     currentMeeting = null;
     renderHome();
-    loadSeries().then(() => renderHome());
+    // A background refresh: if it fails, the list already drawn stands.
+    loadSeries().then(() => renderHome(), () => {});
   } else if (newView === "series") {
     currentSeries  = opts.series;
     currentMeeting = null;
@@ -427,8 +450,9 @@ async function navigateTo(newView, opts = {}) {
 // The row policies cannot express "only adults may INSERT" on an
 // everyone-readable table (see APP_REVIEW_GUIDE.md hard constraints), so a
 // determined member could create/manage meetings via raw /api/db. What IS
-// server-enforced: audience visibility, owner/adult write scoping, completed
-// meetings frozen, and structural columns locked for non-adults. Making
+// server-enforced: audience visibility, write scoping (a row's creator, any
+// adult in a household, the steward in a shared space), completed meetings
+// frozen, and structural columns locked for non-adults. Making
 // management a hard restriction would require a configured privileged group.
 function renderHome() {
   const canCreate = HUB_MEMBER && isAdult(HUB_MEMBER);
@@ -550,7 +574,7 @@ function meetingCard(m) {
 
 // ── Render: Meeting ───────────────────────────────────────────────────────────
 function renderMeeting() {
-  const canManage = HUB_MEMBER && isAdult(HUB_MEMBER);
+  const canManage = canManageMeeting(currentMeeting, HUB_MEMBER, TENANT);
   const inProgress = currentMeeting.status === "in-progress";
   const isCompleted = currentMeeting.status === "completed";
   const title = meetingTitle(currentMeeting, currentSeries);
@@ -559,15 +583,20 @@ function renderMeeting() {
   const discussed = discussedItems(agendaItems);
   const openActions = openActionItems(actionItems);
   const doneActions = actionItems.filter(a => a.status !== "open");
-  // Mirrors the server rule (adults write any row, others only their own) so
-  // members are not shown controls that would 403.
-  const canEditNotes = !isCompleted && (canManage || currentMeeting.created_by === HUB_MEMBER?.id);
+  // Mirrors the server rule (a row is written by its creator, by any adult in
+  // a household, or by the steward in a shared space) so members are not shown
+  // controls that would change nothing.
+  const canEditNotes = !isCompleted && canChange(currentMeeting.created_by);
+  // An adult taking part in a shared space, who changes only what they added.
+  const ownRowsOnly = isAdult(HUB_MEMBER) && !supervisesMeetings(HUB_MEMBER, TENANT);
 
   let statusBarClass = `status-bar-${currentMeeting.status}`;
   let statusBarLabel = inProgress ? "Meeting in progress" : isCompleted ? "Meeting completed" : "Upcoming meeting";
   let statusBarBtn = "";
   if (canManage && !isCompleted) {
-    const canDelete = !inProgress && agendaItems.length === 0;
+    // Deleting removes the meeting's action items first, and those deletes
+    // reach only the rows this member may change.
+    const canDelete = !inProgress && agendaItems.length === 0 && actionItems.every(a => canChange(a.created_by));
     statusBarBtn = inProgress
       ? `<button class="btn btn-sm btn-danger" id="btn-end-meeting">End Meeting</button>`
       : `${canDelete ? `<button class="btn btn-sm btn-danger" id="btn-delete-meeting">Delete</button>` : ""}<button class="btn btn-sm btn-success" id="btn-start-meeting" data-testid="start-meeting">Start Meeting</button>`;
@@ -588,6 +617,7 @@ function renderMeeting() {
       <span class="status-bar-label">${esc(statusBarLabel)}</span>
       ${statusBarBtn}
     </div>
+    ${ownRowsOnly && !isCompleted ? `<p style="font-size:.8rem;color:var(--muted);margin-bottom:12px" data-testid="scope-note">In a shared space you can change what you added. The steward can change everything.</p>` : ""}
 
     <!-- Agenda Items -->
     <div class="section-header">
@@ -613,7 +643,7 @@ function renderMeeting() {
       ? `<p style="font-size:.85rem;color:var(--muted);margin-bottom:8px">No action items.</p>`
       : `
         <div class="list" style="gap:6px">
-          ${openActions.map(a => actionItemRow(a, !isCompleted)).join("")}
+          ${openActions.map(a => actionItemRow(a, !isCompleted && canChange(a.created_by))).join("")}
           ${doneActions.map(a => actionItemRow(a, false)).join("")}
         </div>
       `
@@ -659,15 +689,16 @@ function agendaItemRow(item, canAct) {
   const submitter = memberMap[item.submitted_by];
   const isDone = item.status !== "pending";
   const isCompleted = currentMeeting?.status === "completed";
-  // Mirrors the server rule: adults may modify any item, others only their own.
+  // Mirrors the server rule: an item is modified by whoever submitted it, by
+  // any adult in a household, or by the steward in a shared space.
   // No controls on completed meetings — the record is settled.
-  const canModerate = HUB_MEMBER && (isAdult(HUB_MEMBER) || item.submitted_by === HUB_MEMBER.id);
+  const canModerate = canChange(item.submitted_by);
   const statusBadge = item.status === "discussed"
     ? `<span class="badge badge-green">Discussed</span>`
     : item.status === "tabled"
     ? `<span class="badge badge-amber">Tabled</span>`
     : "";
-  const actions = canAct
+  const actions = canAct && canModerate
     ? `<button class="btn btn-xs btn-ghost" id="item-discuss-${esc(item.id)}" title="Mark discussed" aria-label="Mark discussed">${glyph("tick")}</button>
        <button class="btn btn-xs btn-ghost" id="item-table-${esc(item.id)}" title="Table" aria-label="Table">${glyph("pause")}</button>`
     : isCompleted || !canModerate
@@ -951,7 +982,7 @@ function openEditMeetingModal() {
     const title     = document.getElementById("edit-title")?.value.trim() || null;
     const scheduled = document.getElementById("edit-date")?.value || null;
     try {
-      await dbq(
+      await dbChange(
         `UPDATE app_agenda__meetings SET title = ?, scheduled_at = ? WHERE id = ?`,
         [title, scheduled ? scheduled.padEnd(19, ":00") : null, currentMeeting.id]
       );
@@ -1092,7 +1123,7 @@ async function updateMeetingStatus(status) {
   })) return;
 
   try {
-    await dbq(`UPDATE app_agenda__meetings SET status = ? WHERE id = ?`, [status, currentMeeting.id]);
+    await dbChange(`UPDATE app_agenda__meetings SET status = ? WHERE id = ?`, [status, currentMeeting.id]);
   } catch (e) {
     hubAlert("Could not update the meeting", { description: e.message });
     return;
@@ -1113,7 +1144,7 @@ async function deleteMeeting() {
     // must leave the meeting intact (retryable) rather than orphan its rows.
     await dbq(`DELETE FROM app_agenda__action_items WHERE meeting_id = ?`, [currentMeeting.id]);
     await dbq(`DELETE FROM app_agenda__agenda_items WHERE meeting_id = ?`, [currentMeeting.id]);
-    await dbq(`DELETE FROM app_agenda__meetings WHERE id = ?`, [currentMeeting.id]);
+    await dbChange(`DELETE FROM app_agenda__meetings WHERE id = ?`, [currentMeeting.id]);
   } catch (e) {
     hubAlert("Could not delete the meeting", { description: `${e.message} — try again.` });
     return;
@@ -1127,7 +1158,7 @@ async function markItemStatus(itemId, status, resolution) {
   agendaItems = agendaItems.map(i => i.id === itemId ? { ...i, status, resolution: resolution ?? i.resolution } : i);
   renderMeeting();
   try {
-    await dbq(`UPDATE app_agenda__agenda_items SET status = ?, resolution = ? WHERE id = ?`, [status, resolution ?? null, itemId]);
+    await dbChange(`UPDATE app_agenda__agenda_items SET status = ?, resolution = ? WHERE id = ?`, [status, resolution ?? null, itemId]);
   } catch (e) {
     agendaItems = prev;
     renderMeeting();
@@ -1167,7 +1198,7 @@ function openMarkItemModal(item, status) {
 
 async function deleteAgendaItem(itemId) {
   try {
-    await dbq(`DELETE FROM app_agenda__agenda_items WHERE id = ?`, [itemId]);
+    await dbChange(`DELETE FROM app_agenda__agenda_items WHERE id = ?`, [itemId]);
   } catch (e) {
     hubAlert("Could not remove the agenda item", { description: e.message });
     return;
@@ -1183,7 +1214,7 @@ async function toggleActionDone(actionId, done) {
   actionItems = actionItems.map(a => a.id === actionId ? { ...a, status, completed_at: completedAt } : a);
   renderMeeting();
   try {
-    await dbq(`UPDATE app_agenda__action_items SET status = ?, completed_at = ? WHERE id = ?`, [status, completedAt, actionId]);
+    await dbChange(`UPDATE app_agenda__action_items SET status = ?, completed_at = ? WHERE id = ?`, [status, completedAt, actionId]);
   } catch (e) {
     actionItems = prev;
     renderMeeting();
@@ -1196,7 +1227,7 @@ async function saveNotes() {
   const status = document.getElementById("notes-status");
   if (status) status.textContent = "Saving…";
   try {
-    await dbq(`UPDATE app_agenda__meetings SET notes = ? WHERE id = ?`, [notes, currentMeeting.id]);
+    await dbChange(`UPDATE app_agenda__meetings SET notes = ? WHERE id = ?`, [notes, currentMeeting.id]);
   } catch (e) {
     if (status) status.textContent = "Save failed";
     hubAlert("Could not save notes", { description: e.message });
@@ -1264,9 +1295,17 @@ async function init() {
   await handleDeepLink();
 }
 
-init().catch((e) => {
-  document.getElementById("app").innerHTML = `<div class="error-msg">Failed to load: ${esc(e.message)}</div>`;
+function firstLoad() {
+  return init().catch(() => {
+    document.getElementById("app").innerHTML = `
+      <div class="page-header"><h1>${glyph("agenda")} Agenda</h1></div>
+      <div class="load-error" data-testid="load-error" role="alert"><span>Couldn’t load meetings.</span> <button type="button" class="load-error-retry" data-testid="load-retry">Try again</button></div>`;
+  });
+}
+document.addEventListener("click", (e) => {
+  if (e.target.closest('[data-testid="load-retry"]')) firstLoad();
 });
+firstLoad();
 </script>
 </body>
 </html>

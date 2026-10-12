@@ -112,6 +112,34 @@ export function formatDueDate(iso) {
   return { label, overdue: days < 0, soon: days >= 0 && days <= 2 };
 }
 
+// ── Who may change a row ──────────────────────────────────────────────────────
+
+/**
+ * Whether a member may change a meeting, agenda item or action item someone
+ * else added. Mirrors the hub's rule for those tables (owner_or_visibility):
+ * any adult in a household, and only the steward in a shared space. An adult
+ * who merely takes part in a space has such a write narrowed to their own
+ * rows, so a button offered to them would change nothing.
+ */
+export function supervisesMeetings(member, { tenantKind = "household", isAdmin = false } = {}) {
+  return tenantKind === "household" ? isAdult(member) : isAdmin === true;
+}
+
+/** A row's own creator may always change it; so may whoever supervises meetings. */
+export function canChangeRow(ownerId, member, tenant) {
+  return !!member && (ownerId === member.id || supervisesMeetings(member, tenant));
+}
+
+/**
+ * Whether a member runs a meeting: starts and ends it, edits it, deletes it,
+ * and marks its items discussed. Running a meeting is offered to adults only,
+ * and the hub accepts the writes from the adult who scheduled it or from
+ * whoever supervises meetings.
+ */
+export function canManageMeeting(meeting, member, tenant) {
+  return isAdult(member) && canChangeRow(meeting?.created_by, member, tenant);
+}
+
 // ── Avatar ────────────────────────────────────────────────────────────────────
 
 export function avatarHtml(member) {

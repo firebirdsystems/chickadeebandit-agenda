@@ -116,8 +116,8 @@ async function dbq(sql, params = []) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sql, params }),
   });
-  const json = await res.json();
-  if (json.error) return { rows: [] };
+  const json = await res.json().catch(() => null);
+  if (!res.ok || !json || typeof json !== "object" || json.error) throw new Error(json?.error || "Couldn’t reach the hub. Try again.");
   return json;
 }
 
@@ -200,7 +200,13 @@ async function init() {
   }
 }
 
-init().catch(() => {});
+// A failed read says so: "Nothing scheduled" would be a claim about the data.
+init().catch(() => {
+  document.getElementById("next-section").innerHTML = `
+    <div class="section-label">Next Meeting</div>
+    <div class="empty-msg">Couldn’t load. Open Agenda to try again.</div>
+  `;
+});
 </script>
 </body>
 </html>
