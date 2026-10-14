@@ -268,7 +268,7 @@ import {
   suggestNextDate, formatDate, formatDateShort, formatDueDate, avatarHtml, searchableFields,
   supervisesMeetings, canChangeRow, canManageMeeting,
 } from "./logic.js";
-import { hubConfirm, hubAlert, searchMatch, glyph } from "/hub-sdk.js";
+import { hubConfirm, hubAlert, searchMatch, glyph, hubToday } from "/hub-sdk.js";
 
 // ── Runtime globals ───────────────────────────────────────────────────────────
 const CONTEXT    = window.__CONTEXT_URL ?? "";
@@ -1277,7 +1277,7 @@ async function syncMeetingsToStore() {
      WHERE m.status != 'completed' AND m.audience = 'everyone'
        AND m.scheduled_at IS NOT NULL AND m.scheduled_at >= ?
      ORDER BY m.scheduled_at ASC`,
-    [new Date().toLocaleDateString("en-CA")]
+    [hubToday()]
   );
   const events = (rows ?? []).map(m => ({
     id: m.id,
